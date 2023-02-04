@@ -30,3 +30,5 @@ def get_trades():
             })
     activities = {"activities": sorted(activities, key=lambda x: x["date"])}
     return activities
+if __name__ == '__main__':
+    get_trades()
