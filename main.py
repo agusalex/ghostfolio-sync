@@ -13,8 +13,8 @@ SYNCIBKR = "SYNCIBKR"
 DELETEALL = "DELETEALL"
 
 ghost_token = os.environ.get('GHOST_TOKEN')
-ibkrtoken = os.environ.get("IBKR-TOKEN")
-ibkrquery = os.environ.get("IBKR-QUERY")
+ibkrtoken = os.environ.get("IBKR_TOKEN")
+ibkrquery = os.environ.get("IBKR_QUERY")
 default_host = "https://ghostfol.io"
 ghost_host = os.environ.get("GHOST_HOST", default_host)
 yahoo_source = "5941484f4f" if ghost_host == default_host else "YAHOO"
