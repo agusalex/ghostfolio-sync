@@ -24,8 +24,8 @@ When you configure your Flex Query give it, cash statement permissions as well a
 ### More Options
 | Envs |Description  |
 |--|--|
-|**IBKR-TOKEN**  | Your Token  |
-|**IBKR-QUERY**  | Your Query ID |
+|**IBKR_TOKEN**  | Your Token  |
+|**IBKR_QUERY**  | Your Query ID |
 |**GHOST_TOKEN**  | The token for your ghostfolio account |
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
