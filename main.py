@@ -15,17 +15,12 @@ operations = os.environ.get("OPERATION", SYNCIBKR).split(",")
 
 if __name__ == '__main__':
     for i in range(len(operations)):
-        ghost_token = ghost_tokens[i]
-        ibkr_token = ibkr_tokens[i]
-        ibkr_query = ibkr_queries[i]
-        ghost_host = ghost_hosts[i]
-        operation = operations[i]
-        ghost = SyncIBKR(ghost_host, ibkr_token, ibkr_query, ghost_token)
-        if operation == SYNCIBKR:
+        ghost = SyncIBKR(ghost_hosts[i], ibkr_tokens[i], ibkr_queries[i], ghost_tokens[i])
+        if operations[i] == SYNCIBKR:
             print("Starting sync")
             ghost.sync_ibkr()
             print("End sync")
-        elif operation == DELETEALL:
+        elif operations[i] == DELETEALL:
             print("Starting delete")
             ghost.delete_all_acts()
             print("End delete")
