@@ -7,24 +7,27 @@ DELETEALL = "DELETEALL"
 
 GETALLACTS = "GETALLACTS"
 
-ghost_token = os.environ.get('GHOST_TOKEN')
-ibkrtoken = os.environ.get("IBKR_TOKEN")
-ibkrquery = os.environ.get("IBKR_QUERY")
-default_host = "https://ghostfol.io"
-ghost_host = os.environ.get("GHOST_HOST", default_host)
-yahoo_source = "YAHOO"
-operation = os.environ.get("OPERATION", SYNCIBKR)
+ghost_tokens = os.environ.get('GHOST_TOKEN').split(",")
+ibkr_tokens = os.environ.get("IBKR_TOKEN").split(",")
+ibkr_queries = os.environ.get("IBKR_QUERY").split(",")
+ghost_hosts = os.environ.get("GHOST_HOST", "https://ghostfol.io").split(",")
+operations = os.environ.get("OPERATION", SYNCIBKR).split(",")
 
 if __name__ == '__main__':
-    ghost = SyncIBKR(ghost_host, ibkrtoken, ibkrquery, ghost_token)
-
-    if operation == SYNCIBKR:
-        print("Starting sync")
-        ghost.sync_ibkr()
-        print("End sync")
-    elif operation == DELETEALL:
-        print("Starting delete")
-        ghost.delete_all_acts()
-        print("End delete")
-    else:
-        print("Unknown Operation")
+    for i in range(len(operations)):
+        ghost_token = ghost_tokens[i]
+        ibkr_token = ibkr_tokens[i]
+        ibkr_query = ibkr_queries[i]
+        ghost_host = ghost_hosts[i]
+        operation = operations[i]
+        ghost = SyncIBKR(ghost_host, ibkr_token, ibkr_query, ghost_token)
+        if operation == SYNCIBKR:
+            print("Starting sync")
+            ghost.sync_ibkr()
+            print("End sync")
+        elif operation == DELETEALL:
+            print("Starting delete")
+            ghost.delete_all_acts()
+            print("End delete")
+        else:
+            print("Unknown Operation")

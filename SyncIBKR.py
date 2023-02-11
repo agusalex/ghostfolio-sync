@@ -19,6 +19,11 @@ def get_cash_amount_from_flex(query):
     return cash
 
 
+def generate_chunks(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 def format_act(act):
     symbol_nested = act.get("SymbolProfile", {"symbol": ""}).get("symbol")
     return {
@@ -69,7 +74,7 @@ class SyncIBKR:
         if account_id == "":
             print("Failed to retrieve account ID closing now")
             return
-        self.set_cash_to_account(account_id, query)
+        self.set_cash_to_account(account_id, get_cash_amount_from_flex(query))
         for trade in query.FlexStatements[0].Trades:
             if trade.openCloseIndicator.CLOSE:
                 date = datetime.strptime(str(trade.tradeDate), date_format)
@@ -99,10 +104,9 @@ class SyncIBKR:
         if len(diff) == 0:
             print("Nothing new to sync")
         else:
-            self.import_act({"activities": sorted(diff, key=lambda x: x["date"])})
+            self.import_act(diff)
 
-    def set_cash_to_account(self, account_id, query):
-        cash = get_cash_amount_from_flex(query)
+    def set_cash_to_account(self, account_id, cash):
         if cash == 0:
             print("No cash set, no cash retrieved")
             return False
@@ -144,25 +148,29 @@ class SyncIBKR:
 
         return response.status_code == 200
 
-    def import_act(self, acts):
-        url = f"{self.ghost_host}/api/v1/import"
-
-        payload = json.dumps(acts)
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-            'Content-Type': 'application/json'
-        }
-        print("Adding activities: " + json.dumps(acts))
-        try:
-            response = requests.request("POST", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return False
-        if response.status_code == 201:
-            print(f"created {acts}")
-        else:
-            print("Failed create: " + response.text)
-        return response.status_code == 201
+    def import_act(self, bulk):
+        chunks = generate_chunks(bulk, 10)
+        for acts in chunks:
+            url = f"{self.ghost_host}/api/v1/import"
+            formatted_acts = json.dumps({"activities": sorted(acts, key=lambda x: x["date"])})
+            payload = formatted_acts
+            headers = {
+                'Authorization': f"Bearer {self.ghost_token}",
+                'Content-Type': 'application/json'
+            }
+            print("Adding activities: " + formatted_acts)
+            try:
+                response = requests.request("POST", url, headers=headers, data=payload)
+            except Exception as e:
+                print(e)
+                return False
+            if response.status_code == 201:
+                print(f"created {formatted_acts}")
+            else:
+                print("Failed create: " + response.text)
+            if response.status_code != 201:
+                return False
+        return True
 
     def addAct(self, act):
         url = f"{self.ghost_host}/api/v1/order"
