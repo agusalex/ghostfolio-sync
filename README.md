@@ -1,5 +1,4 @@
 # Ghostfolio-Sync
-<a href="https://www.buymeacoffee.com/YiQkYsghUQ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 Sync your Ghostfolio with IBKR ( more to come? )
 
@@ -32,3 +31,5 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
+
+<a href="https://www.buymeacoffee.com/YiQkYsghUQ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
