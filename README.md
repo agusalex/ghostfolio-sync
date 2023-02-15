@@ -32,4 +32,9 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
+## Contributing
+
+* Feel free to submit any issue or PR's you think necessary
+* If you like the work and want to buy me a coffee you are more than welcome :)
+
 <a href="https://www.buymeacoffee.com/YiQkYsghUQ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
