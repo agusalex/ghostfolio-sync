@@ -76,7 +76,9 @@ class SyncIBKR:
             return
         self.set_cash_to_account(account_id, get_cash_amount_from_flex(query))
         for trade in query.FlexStatements[0].Trades:
-            if trade.openCloseIndicator.CLOSE:
+            if trade.openCloseIndicator is not None:
+                print("trade is not open or close (ignoring): %s", trade)
+            elif trade.openCloseIndicator.CLOSE:
                 date = datetime.strptime(str(trade.tradeDate), date_format)
                 iso_format = date.isoformat()
                 symbol = trade.symbol
