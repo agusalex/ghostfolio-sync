@@ -1,4 +1,5 @@
 import os
+import LoggerFactory
 from SyncIBKR import SyncIBKR
 
 SYNCIBKR = "SYNCIBKR"
@@ -14,16 +15,24 @@ ghost_hosts = os.environ.get("GHOST_HOST", "https://ghostfol.io").split(",")
 ghost_currency = os.environ.get("GHOST_CURRENCY", "USD").split(",")
 operations = os.environ.get("OPERATION", SYNCIBKR).split(",")
 
+logger = LoggerFactory.get_logger(__name__)
+
 if __name__ == '__main__':
     for i in range(len(operations)):
-        ghost = SyncIBKR(ghost_hosts[i], ibkr_tokens[i], ibkr_queries[i], ghost_tokens[i], ghost_currency[i])
+        ghost = SyncIBKR(
+            ghost_hosts[i],
+            ibkr_tokens[i],
+            ibkr_queries[i],
+            ghost_tokens[i],
+            ghost_currency[i]
+        )
         if operations[i] == SYNCIBKR:
-            print("Starting sync")
+            logger.info("Starting sync")
             ghost.sync_ibkr()
-            print("End sync")
+            logger.info("End sync")
         elif operations[i] == DELETEALL:
-            print("Starting delete")
-            ghost.delete_all_acts()
-            print("End delete")
+            logger.info("Starting delete")
+            ghost.delete_all_activities()
+            logger.info("End delete")
         else:
-            print("Unknown Operation")
+            logger.warning("Unknown Operation")

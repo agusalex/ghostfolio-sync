@@ -1,9 +1,15 @@
-from time import sleep
-
-import requests
-from ibflex import client, parser, FlexQueryResponse, BuySell
-from datetime import datetime
 import json
+import os
+from datetime import datetime
+
+from ibflex import FlexQueryResponse, BuySell
+
+import LoggerFactory
+from GhostfolioApi import GhostfolioApi
+from IbkrApi import IbkrApi
+
+write_debug_files = os.environ.get("WRITE_DEBUG_FILES", "FALSE")
+logger = LoggerFactory.get_logger(__name__)
 
 
 def get_cash_amount_from_flex(query):
@@ -19,11 +25,6 @@ def get_cash_amount_from_flex(query):
     return cash
 
 
-def generate_chunks(lst, n):
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
-
-
 def format_act(act):
     symbol_nested = act.get("SymbolProfile", {"symbol": ""}).get("symbol")
     return {
@@ -33,12 +34,18 @@ def format_act(act):
         "quantity": act["quantity"],
         "symbol": act.get("symbol", symbol_nested),
         "type": act["type"],
-        "unitPrice": act["unitPrice"]
+        "unitPrice": act["unitPrice"],
     }
 
 
 def is_act_present(act_search, acts):
+    # if sync has written id as comment,
+    # extract it, it should could be the transaction id
+    comment = act_search["comment"]
+
     for act in acts:
+        if comment is not None and comment.startswith(act["comment"]):
+            return True
         act1 = format_act(act)
         act2 = format_act(act_search)
         if act1 == act2:
@@ -58,60 +65,99 @@ class SyncIBKR:
     IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
 
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token, ghost_currency):
-        self.ghost_token = ghost_token
-        self.ghost_host = ghost_host
+        self.ghostfolio_api = GhostfolioApi(ghost_host, ghost_token, ghost_currency)
+        self.ibkr_api = IbkrApi(ibkrtoken, ibkrquery)
         self.ghost_currency = ghost_currency
-        self.ibkrtoken = ibkrtoken
-        self.ibkrquery = ibkrquery
 
     def sync_ibkr(self):
-        print("Fetching Query")
-        response = client.download(self.ibkrtoken, self.ibkrquery)
-        print("Parsing Query")
-        query: FlexQueryResponse = parser.parse(response)
+        account_id = self.ghostfolio_api.create_or_get_ibkr_account_id()
+        if account_id == "":
+            logger.warning("Failed to retrieve account ID closing now")
+            return
+        query: FlexQueryResponse = self.ibkr_api.get_and_parse_query()
         activities = []
         date_format = "%Y-%m-%d"
-        account_id = self.create_or_get_IBKR_accountId()
-        if account_id == "":
-            print("Failed to retrieve account ID closing now")
-            return
+
         self.set_cash_to_account(account_id, get_cash_amount_from_flex(query))
+        skipped_categories_counter = {}
         for trade in query.FlexStatements[0].Trades:
-            if trade.openCloseIndicator is not None:
-                print("trade is not open or close (ignoring): %s", trade)
-            elif trade.openCloseIndicator.CLOSE:
-                date = datetime.strptime(str(trade.tradeDate), date_format)
-                iso_format = date.isoformat()
-                symbol = trade.symbol
-                if ".USD-PAXOS" in trade.symbol:
-                    symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
 
-                if trade.buySell == BuySell.BUY:
-                    buysell = "BUY"
-                else:
-                    buysell = "SELL"
+            if trade.assetCategory is not trade.assetCategory.STOCK:
+                logger.debug("ignore %s: %s", trade.assetCategory, trade.symbol)
+                existing_skips = skipped_categories_counter.get(trade.assetCategory,0)
+                skipped_categories_counter[trade.assetCategory] = existing_skips + 1
+                continue
 
-                activities.append({
-                    "accountId": account_id,
-                    "currency": trade.currency,
-                    "dataSource": "YAHOO",
-                    "date": iso_format,
-                    "fee": float(0),
-                    "quantity": abs(float(trade.quantity)),
-                    "symbol": symbol,
-                    "type": buysell,
-                    "unitPrice": float(trade.tradePrice)
-                })
+            if trade.openCloseIndicator is None:
+                logger.warning("trade is not open or close (ignoring): %s", trade)
 
-        diff = get_diff(self.get_all_acts_for_account(account_id), activities)
+            date = datetime.strptime(str(trade.tradeDate), date_format)
+            iso_format = date.isoformat()
+            symbol = trade.symbol
+            if ".USD-PAXOS" in trade.symbol:
+                symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
+
+            if trade.buySell == BuySell.BUY:
+                buy_sell = "BUY"
+            else:
+                buy_sell = "SELL"
+
+            data_source, yahoo_symbol, yahoo_currency = self.ghostfolio_api.get_ticker(
+                trade.isin,
+                symbol)
+            unit_price = float(trade.tradePrice)
+            unit_currency = trade.currency
+            fee = float(trade.taxes)
+
+            # Handling special case:
+            # ghostfolio is checking currency against source (yahoo)
+            if trade.currency != yahoo_currency:
+                # converting GBP to GBp (IB vs Yahoo)
+                if trade.currency == 'GBP' and yahoo_currency == 'GBp':
+                    logger.debug("Converting GBP to GBp for Yahoo compatibility")
+                    unit_price *= 100
+                    unit_currency = 'GBp'
+                    if trade.ibCommissionCurrency == 'GBP':
+                        fee += float((trade.ibCommission * 100) * -1)
+            else:
+                fee += float(trade.ibCommission * -1)
+
+            activities.append({
+                "accountId": account_id,
+                "currency": unit_currency,
+                "dataSource": data_source,
+                "date": iso_format,
+                "fee": fee,
+                "quantity": abs(float(trade.quantity)),
+                "symbol": yahoo_symbol,
+                "type": buy_sell,
+                "unitPrice": unit_price,
+                "comment": f"<sync-trade-transactionID>"
+                           f"{trade.transactionID}"
+                           f"</sync-trade-transactionID>",
+            })
+
+        if len(skipped_categories_counter) > 0:
+            logger.info(f"Skipped: {skipped_categories_counter}")
+
+        existing_activities = self.ghostfolio_api.get_all_activities_for_account(
+            account_id
+        )
+        diff = get_diff(existing_activities, activities)
+        with open('deb_existing_activities.json', 'w') as outfile:
+            json.dump(existing_activities, outfile)
+        with open('deb_activities.json', 'w') as outfile:
+            json.dump(activities, outfile)
+        with open('deb_diff.json', 'w') as outfile:
+            json.dump(diff, outfile)
         if len(diff) == 0:
-            print("Nothing new to sync")
+            logger.info("Nothing new to sync")
         else:
-            self.import_act(diff)
+            self.ghostfolio_api.import_activities(diff)
 
     def set_cash_to_account(self, account_id, cash):
         if cash == 0:
-            print("No cash set, no cash retrieved")
+            logger.info("No cash set, no cash retrieved")
             return False
         account = {
             "accountType": "SECURITIES",
@@ -123,175 +169,7 @@ class SyncIBKR:
             "platformId": self.IBKRCATEGORY
         }
 
-        url = f"{self.ghost_host}/api/v1/account/{account_id}"
+        self.ghostfolio_api.update_account(account_id, account)
 
-        payload = json.dumps(account)
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-            'Content-Type': 'application/json'
-        }
-        try:
-            response = requests.request("PUT", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return False
-        if response.status_code == 200:
-            print(f"Updated Cash for account {response.json()['id']}")
-        else:
-            print("Failed create: " + response.text)
-        return response.status_code == 200
-
-    def delete_act(self, act_id):
-        url = f"{self.ghost_host}/api/v1/order/{act_id}"
-
-        payload = {}
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-        }
-        try:
-            response = requests.request("DELETE", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return False
-
-        return response.status_code == 200
-
-    def import_act(self, bulk):
-        chunks = generate_chunks(bulk, 10)
-        for acts in chunks:
-            url = f"{self.ghost_host}/api/v1/import"
-            formatted_acts = json.dumps({"activities": sorted(acts, key=lambda x: x["date"])})
-            payload = formatted_acts
-            headers = {
-                'Authorization': f"Bearer {self.ghost_token}",
-                'Content-Type': 'application/json'
-            }
-            print("Adding activities: " + formatted_acts)
-            try:
-                response = requests.request("POST", url, headers=headers, data=payload)
-            except Exception as e:
-                print(e)
-                return False
-            if response.status_code == 201:
-                print(f"created {formatted_acts}")
-            else:
-                print("Failed create: " + response.text)
-            if response.status_code != 201:
-                return False
-        return True
-
-    def addAct(self, act):
-        url = f"{self.ghost_host}/api/v1/order"
-
-        payload = json.dumps(act)
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-            'Content-Type': 'application/json'
-        }
-        print("Adding activity: " + json.dumps(act))
-        try:
-            response = requests.request("POST", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return False
-        if response.status_code == 201:
-            print(f"created {response.json()['id']}")
-        else:
-            print("Failed create: " + response.text)
-        return response.status_code == 201
-
-    def create_ibkr_account(self):
-        account = {
-            "accountType": "SECURITIES",
-            "balance": 0,
-            "currency": self.ghost_currency,
-            "isExcluded": False,
-            "name": "IBKR",
-            "platformId": "9da3a8a7-4795-43e3-a6db-ccb914189737"
-        }
-
-        url = f"{self.ghost_host}/api/v1/account"
-
-        payload = json.dumps(account)
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-            'Content-Type': 'application/json'
-        }
-        try:
-            response = requests.request("POST", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return ""
-        if response.status_code == 201:
-            return response.json()["id"]
-        print("Failed creating ")
-        return ""
-
-    def get_account(self):
-        url = f"{self.ghost_host}/api/v1/account"
-
-        payload = {}
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-        }
-        try:
-            response = requests.request("GET", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return []
-        if response.status_code == 200:
-            return response.json()['accounts']
-        else:
-            raise Exception(response)
-
-    def create_or_get_IBKR_accountId(self):
-        accounts = self.get_account()
-        for account in accounts:
-            if account["name"] == "IBKR":
-                return account["id"]
-        return self.create_ibkr_account()
-
-    def delete_all_acts(self):
-        account_id = self.create_or_get_IBKR_accountId()
-        acts = self.get_all_acts_for_account(account_id)
-
-        if not acts:
-            print("No activities to delete")
-            return True
-        complete = True
-
-        for act in acts:
-            if act['accountId'] == account_id:
-                act_complete = self.delete_act(act['id'])
-                complete = complete and act_complete
-                if act_complete:
-                    print("Deleted: " + act['id'])
-                else:
-                    print("Failed Delete: " + act['id'])
-        return complete
-
-    def get_all_acts_for_account(self, account_id):
-        acts = self.get_all_acts()
-        filtered_acts = []
-        for act in acts:
-            if act['accountId'] == account_id:
-                filtered_acts.append(act)
-        return filtered_acts
-
-    def get_all_acts(self):
-        url = f"{self.ghost_host}/api/v1/order"
-
-        payload = {}
-        headers = {
-            'Authorization': f"Bearer {self.ghost_token}",
-        }
-        try:
-            response = requests.request("GET", url, headers=headers, data=payload)
-        except Exception as e:
-            print(e)
-            return []
-
-        if response.status_code == 200:
-            return response.json()['activities']
-        else:
-            return []
+    def delete_all_activities(self):
+        self.ghostfolio_api.delete_all_activities()
