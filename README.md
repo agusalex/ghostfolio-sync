@@ -37,7 +37,7 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
-|**LOG_LEVEL** | (optional) INFO (default): standard python loglevels are supported |
+|**LOG_LEVEL** | (optional) INFO (default): standard python (logging levels)[https://docs.python.org/3/library/logging.html#logging-levels] are supported |
 |**WRITE_DEBUG_FILES** | (optional) FALSE (default): write activities to debug file |
 
 ## Important / Need to know
