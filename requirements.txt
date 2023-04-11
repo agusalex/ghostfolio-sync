@@ -1,4 +1,4 @@
 git+https://github.com/agusalex/ibflex@patch-1
 requests==2.28.2
-urllib3==1.26.14
-requests
+urllib3==1.26.15
+colorlog==6.7.0
