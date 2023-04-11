@@ -1,6 +1,11 @@
 # Ghostfolio-Sync
 
-Sync your Ghostfolio with IBKR ( more to come? )
+Sync your (Ghostfolio)[https://ghostfol.io/en/home/overview] with IBKR ( more to come? )
+
+## Kudos 
+
+This is based on [agusalex/ghostfolio-sync](https://github.com/agusalex/ghostfolio-sync) which is a great work.
+This fork is more for personal developement, as it runs primarly against a self-hosted instance.
 
 ## Setup
 
@@ -32,6 +37,21 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
+
+## Important / Need to know
+
+For identification of synced objects, it will write a field comment on each trade. This looks like `<sync-trade-transactionID>foobar</sync-trade-transactionID>`.
+Where foobar is the transactionId from Interactive Brokers.
+
+### symbol lookup 
+
+The symbol lookup is done on ghostfolio. Watch out for messages like: `fuzzy match to first symbol for` this means for the Instrument where multiple results.
+
+### asset classes
+
+Currently only stocks are supported.  in the log you'll able to find messages like `DEBUG:SyncIBKR: ignore AssetClass.OPTION: SYMBOL   ID` or `DEBUG:SyncIBKR: ignore AssetClass.CASH: USD.HKD`.
+They are summarised in a info statement. For example: `INFO:SyncIBKR: Skipped: {<AssetClass.OPTION: 'OPT'>: 14, <AssetClass.CASH: 'CASH'>: 20}`. May be ghostfolio will support options one day :)
+
 
 ## Contributing
 
