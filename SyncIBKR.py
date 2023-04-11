@@ -144,12 +144,18 @@ class SyncIBKR:
             account_id
         )
         diff = get_diff(existing_activities, activities)
-        with open('deb_existing_activities.json', 'w') as outfile:
-            json.dump(existing_activities, outfile)
-        with open('deb_activities.json', 'w') as outfile:
-            json.dump(activities, outfile)
-        with open('deb_diff.json', 'w') as outfile:
-            json.dump(diff, outfile)
+        if write_debug_files:
+            logger.warn("Flag: WRITE_DEBUG_FILES is set, writing files")
+            with open('deb_existing_activities.json', 'w') as outfile:
+                logger.warn("Flag: writing existing_activities")
+                json.dump(existing_activities, outfile)
+            with open('deb_new_activities.json', 'w') as outfile:
+                logger.warn("Flag: writing new activities")
+                json.dump(activities, outfile)
+            with open('deb_diff_activities.json', 'w') as outfile:
+                logger.warn("Flag: writing new activities differences")
+                json.dump(diff, outfile)
+
         if len(diff) == 0:
             logger.info("Nothing new to sync")
         else:
