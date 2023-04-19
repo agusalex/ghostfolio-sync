@@ -97,10 +97,8 @@ class SyncIBKR:
             symbol = self.map_symbol(trade)
             buy_sell = self.map_buy_sell(trade)
 
-            lookup_data_source, lookup_symbol, lookup_currency = self.ghostfolio_api.get_ticker(
-                trade.isin,
-                symbol
-            )
+            lookup_data_source, lookup_symbol, lookup_currency = self. \
+                ghostfolio_api.get_ticker(trade.isin, symbol)
             unit_price = float(trade.tradePrice)
             unit_currency = trade.currency
             fee = float(trade.taxes)

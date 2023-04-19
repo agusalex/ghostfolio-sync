@@ -31,15 +31,15 @@ class GhostfolioApi:
             'Content-Type': 'application/json'
         }
         try:
-            self.__log_network_request(url, account)
+            self.__log_request(url, account)
             response = requests.request("PUT", url, headers=headers, data=payload)
         except Exception as e:
-            self.__log_network_request_error(url, f"{e}")
+            self.__log_request_error(url, f"{e}")
             return False
         if response.status_code == 200:
-            self.__log_network_request(url,f"Updated Cash for account {response.json()['id']}")
+            self.__log_request(url, f"Updated Cash for account {response.json()['id']}")
         else:
-            self.__log_network_request_error(url, f"Failed create: {response.text}")
+            self.__log_request_error(url, f"Failed create: {response.text}")
         return response.status_code == 200
 
     def delete_activity(self, act_id):
@@ -48,10 +48,10 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            self.__log_network_request(url)
+            self.__log_request(url)
             response = requests.request("DELETE", url, headers=headers, data=payload)
         except Exception as e:
-            self.__log_network_request_error(url, e)
+            self.__log_request_error(url, e)
             return False
 
         return response.status_code == 200
@@ -77,15 +77,17 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            self.__log_network_request(url)
+            self.__log_request(url)
             response = requests.request("GET", url, headers=headers, data=payload)
         except Exception as e:
-            logger.warning(f"get_all_activities {url} error while fetching all activities: {e}")
+            logger.warning(
+                f"get_all_activities {url} error while fetching all activities: {e}"
+            )
             return []
 
         if response.status_code == 200:
             activities = response.json()['activities']
-            self.__log_network_request(url, f"received {len(activities)} activities")
+            self.__log_request(url, f"received {len(activities)} activities")
             return activities
         else:
             return []
@@ -104,20 +106,26 @@ class GhostfolioApi:
             }
             logger.info("import_activities Adding activities: \n" + formatted_acts)
             try:
-                logger.debug(f"import_activities {url} adding {len(formatted_acts)} activities")
-                self.__log_network_request(url, f"adding {len(formatted_acts)} activities")
+                logger.debug(
+                    f"import_activities {url} adding {len(formatted_acts)} activities"
+                )
+                self.__log_request(url, f"adding {len(formatted_acts)} activities")
                 response = requests.request("POST", url, headers=headers, data=payload)
             except Exception as e:
                 logger.warning(f"import_activities {url} exception; {e}")
-                self.__log_network_request_error(url, f"with payload: {payload} failed with {e}")
+                self.__log_request_error(
+                    url,
+                    f"with payload: {payload} failed with {e}"
+                )
                 return False
             if response.status_code == 201:
-                logger.info(f"import_activities {url} created {len(formatted_acts)} activities")
-            else:
-                self.__log_network_request_error(
-                    url,
-                    f"Failed create following activities {formatted_acts}: {response.text} "
+                logger.info(
+                    f"import_activities {url} created {len(formatted_acts)} activities"
                 )
+            else:
+                message = f"Failed create following activities:" \
+                          f" {formatted_acts}: {response.text}"
+                self.__log_request_error(url, message)
             if response.status_code != 201:
                 return False
         return True
@@ -137,9 +145,9 @@ class GhostfolioApi:
             logger.error(e)
             return False
         if response.status_code == 201:
-            self.__log_network_request(url, f"created {response.json()['id']}")
+            self.__log_request(url, f"created {response.json()['id']}")
         else:
-            self.__log_network_request_error(url, f"Failed create: {response.text}")
+            self.__log_request_error(url, f"Failed create: {response.text}")
         return response.status_code == 201
 
     def create_or_get_ibkr_account_id(self):
@@ -210,7 +218,7 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            self.__log_network_request(url)
+            self.__log_request(url)
             response = requests.request("GET", url, headers=headers, data=payload)
         except Exception as e:
             logger.error(e)
@@ -235,11 +243,11 @@ class GhostfolioApi:
         url = f"{self.ghost_host}/api/v1/symbol/lookup?query={query}"
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            self.__log_network_request(url)
+            self.__log_request(url)
             response = requests.request("GET", url, headers=headers)
             return self.validate_and_convert_response_to_assets(response)
         except Exception as e:
-            self.__log_network_request_error(url, f"lookup asset: {query} failed with {e}")
+            self.__log_request_error(url, f"lookup asset: {query} failed with {e}")
             return False, None
 
     @staticmethod
@@ -252,10 +260,10 @@ class GhostfolioApi:
             'Authorization': f"Bearer {self.ghost_token}",
         }
 
-    def __log_network_request(self, url, message="no-message"):
+    def __log_request(self, url, message="no-message"):
         previous_function_name = sys._getframe(1).f_code.co_name
         logger.debug(f"{previous_function_name} {url}: {message}")
 
-    def __log_network_request_error(self, url, message="no-message"):
+    def __log_request_error(self, url, message="no-message"):
         previous_function_name = sys._getframe(1).f_code.co_name
         logger.error(f"{previous_function_name} {url}: {message}")
