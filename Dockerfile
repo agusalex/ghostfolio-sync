@@ -10,7 +10,6 @@ ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_a
 COPY ./entrypoint.sh /root/entrypoint.sh
 COPY ./run.sh /root/run.sh
 RUN chmod 777 /root/entrypoint.sh /root/run.sh /bin/dumb-init
-COPY main.py .
-COPY SyncIBKR.py .
+COPY *.py .
 ENTRYPOINT ["dumb-init", "--"]
 CMD /root/entrypoint.sh | while IFS= read -r line; do printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$line"; done;
