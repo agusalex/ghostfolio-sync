@@ -19,9 +19,12 @@ When you configure your Flex Query give it, cash statement permissions as well a
 **Important: If you dont want ghostfolio-sync to sync everything everytime and make it quicker, just set a shorter window for the query. Keep in mind that what was not synced by ghostfolio-sync in that period of time will be lost (ie when the window moves and content was not uploaded to ghostfolio). This can be avoided at the cost of a longer window of time and longer sync**
 
 ### Ghostfolio
-* Create an account using anonymous option save your **KEY**.
-* Go to this link (if using online ghostfolio use https://ghostfol.io) https://**GHOST_HOST**/api/v1/auth/anonymous/**KEY**
-* Take note of your **GHOST_TOKEN**
+1. Create an account using anonymous option save your **KEY**.
+2. Get the **GHOST_TOKEN** for self-hosted `curl -X POST \
+   http://192.168.3.1:3333/api/v1/auth/anonymous \
+   -H 'Content-Type: application/json' \
+   -d '{"accessToken":"REPLACE_WITH_YOUR_KEY"}'`
+3. Take note of your **GHOST_TOKEN**
 
 ## Run in Docker
 

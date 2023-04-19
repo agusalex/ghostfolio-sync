@@ -62,7 +62,8 @@ def get_diff(old_acts, new_acts):
 
 
 class SyncIBKR:
-    IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
+    # todo: Id as in ghostfolio
+    IBKRCATEGORY = None
 
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token, ghost_currency):
         self.ghostfolio_api = GhostfolioApi(ghost_host, ghost_token, ghost_currency)
@@ -93,27 +94,22 @@ class SyncIBKR:
 
             date = datetime.strptime(str(trade.tradeDate), date_format)
             iso_format = date.isoformat()
-            symbol = trade.symbol
-            if ".USD-PAXOS" in trade.symbol:
-                symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
+            symbol = self.map_symbol(trade)
+            buy_sell = self.map_buy_sell(trade)
 
-            if trade.buySell == BuySell.BUY:
-                buy_sell = "BUY"
-            else:
-                buy_sell = "SELL"
-
-            data_source, yahoo_symbol, yahoo_currency = self.ghostfolio_api.get_ticker(
+            lookup_data_source, lookup_symbol, lookup_currency = self.ghostfolio_api.get_ticker(
                 trade.isin,
-                symbol)
+                symbol
+            )
             unit_price = float(trade.tradePrice)
             unit_currency = trade.currency
             fee = float(trade.taxes)
 
             # Handling special case:
             # ghostfolio is checking currency against source (yahoo)
-            if trade.currency != yahoo_currency:
+            if trade.currency != lookup_currency:
                 # converting GBP to GBp (IB vs Yahoo)
-                if trade.currency == 'GBP' and yahoo_currency == 'GBp':
+                if trade.currency == 'GBP' and lookup_currency == 'GBp':
                     logger.debug("Converting GBP to GBp for Yahoo compatibility")
                     unit_price *= 100
                     unit_currency = 'GBp'
@@ -125,11 +121,11 @@ class SyncIBKR:
             activities.append({
                 "accountId": account_id,
                 "currency": unit_currency,
-                "dataSource": data_source,
+                "dataSource": lookup_data_source,
                 "date": iso_format,
                 "fee": fee,
                 "quantity": abs(float(trade.quantity)),
-                "symbol": yahoo_symbol,
+                "symbol": lookup_symbol,
                 "type": buy_sell,
                 "unitPrice": unit_price,
                 "comment": f"<sync-trade-transactionID>"
@@ -145,15 +141,15 @@ class SyncIBKR:
         )
         diff = get_diff(existing_activities, activities)
         if write_debug_files:
-            logger.warn("Flag: WRITE_DEBUG_FILES is set, writing files")
+            logger.warn("Flag WRITE_DEBUG_FILES is set, writing files")
             with open('deb_existing_activities.json', 'w') as outfile:
-                logger.warn("Flag: writing existing_activities")
+                logger.warn("WRITE_DEBUG_FILES: writing existing_activities")
                 json.dump(existing_activities, outfile)
             with open('deb_new_activities.json', 'w') as outfile:
-                logger.warn("Flag: writing new activities")
+                logger.warn("WRITE_DEBUG_FILES: writing new activities")
                 json.dump(activities, outfile)
             with open('deb_diff_activities.json', 'w') as outfile:
-                logger.warn("Flag: writing new activities differences")
+                logger.warn("WRITE_DEBUG_FILES: writing new activities differences")
                 json.dump(diff, outfile)
 
         if len(diff) == 0:
@@ -161,13 +157,26 @@ class SyncIBKR:
         else:
             self.ghostfolio_api.import_activities(diff)
 
+    def map_symbol(self, trade):
+        symbol = trade.symbol
+        if ".USD-PAXOS" in trade.symbol:
+            symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
+        return symbol
+
+    def map_buy_sell(self, trade):
+        if trade.buySell == BuySell.BUY:
+            buy_sell = "BUY"
+        else:
+            buy_sell = "SELL"
+        return buy_sell
+
     def set_cash_to_account(self, account_id, cash):
         if cash == 0:
             logger.info("No cash set, no cash retrieved")
             return False
         account = {
             "accountType": "SECURITIES",
-            "balance": float(cash),
+            "balance": round(float(cash), 2),
             "id": account_id,
             "currency": self.ghost_currency,
             "isExcluded": False,
@@ -178,4 +187,8 @@ class SyncIBKR:
         self.ghostfolio_api.update_account(account_id, account)
 
     def delete_all_activities(self):
-        self.ghostfolio_api.delete_all_activities()
+        account_id = self.ghostfolio_api.create_or_get_ibkr_account_id()
+        if account_id == "":
+            logger.warning("Failed to retrieve account ID stopping now")
+            return
+        self.ghostfolio_api.delete_all_activities(account_id)
