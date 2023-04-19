@@ -1,9 +1,13 @@
 import json
 
 import requests
+import sys
+
+from cachetools import TTLCache, cached
 
 import LoggerFactory
 
+cache = TTLCache(maxsize=100, ttl=300)
 logger = LoggerFactory.get_logger(__name__)
 
 
@@ -216,6 +220,7 @@ class GhostfolioApi:
         else:
             raise Exception(response)
 
+    @cached(cache)
     def get_ticker(self, isin, symbol):
         # for now only yahoo
         data_source = "YAHOO"
