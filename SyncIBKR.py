@@ -83,8 +83,8 @@ class SyncIBKR:
         for trade in query.FlexStatements[0].Trades:
 
             if trade.assetCategory is not trade.assetCategory.STOCK:
-                logger.debug("ignore %s: %s", trade.assetCategory, trade.symbol)
-                existing_skips = skipped_categories_counter.get(trade.assetCategory,0)
+                logger.debug(f"ignore {trade.assetCategory}, {trade.symbol}: {trade}")
+                existing_skips = skipped_categories_counter.get(trade.assetCategory, 0)
                 skipped_categories_counter[trade.assetCategory] = existing_skips + 1
                 continue
 

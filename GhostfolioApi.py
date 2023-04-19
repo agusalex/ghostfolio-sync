@@ -27,15 +27,15 @@ class GhostfolioApi:
             'Content-Type': 'application/json'
         }
         try:
-            logger.debug(f"update_account {url}: {account}")
+            self.__log_network_request(url, account)
             response = requests.request("PUT", url, headers=headers, data=payload)
         except Exception as e:
-            logger.error(e)
+            self.__log_network_request_error(url, f"{e}")
             return False
         if response.status_code == 200:
-            logger.info(f"Updated Cash for account {response.json()['id']}")
+            self.__log_network_request(url,f"Updated Cash for account {response.json()['id']}")
         else:
-            logger.warning(f"Failed create: {response.text}")
+            self.__log_network_request_error(url, f"Failed create: {response.text}")
         return response.status_code == 200
 
     def delete_activity(self, act_id):
@@ -44,24 +44,13 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            logger.debug(f"delete_activity {url}")
+            self.__log_network_request(url)
             response = requests.request("DELETE", url, headers=headers, data=payload)
         except Exception as e:
-            logger.error(e)
+            self.__log_network_request_error(url, e)
             return False
 
         return response.status_code == 200
-
-    def lookup_asset(self, query):
-        url = f"{self.ghost_host}/api/v1/symbol/lookup?query={query}"
-        headers = self.__get_header_with_ghostfolio_auth()
-        try:
-            response = requests.request("GET", url, headers=headers)
-            return self.validate_and_convert_response_to_assets(response)
-        except Exception as e:
-            logger.error("lookup asset failed:")
-            logger.error(e)
-            return False, None
 
     @staticmethod
     def validate_and_convert_response_to_assets(response):
@@ -84,14 +73,16 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
-            logger.debug(f"get_all_activities {url}")
+            self.__log_network_request(url)
             response = requests.request("GET", url, headers=headers, data=payload)
         except Exception as e:
-            logger.warning("error while fetching all activities: %s", e)
+            logger.warning(f"get_all_activities {url} error while fetching all activities: {e}")
             return []
 
         if response.status_code == 200:
-            return response.json()['activities']
+            activities = response.json()['activities']
+            self.__log_network_request(url, f"received {len(activities)} activities")
+            return activities
         else:
             return []
 
@@ -107,16 +98,22 @@ class GhostfolioApi:
                 'Authorization': f"Bearer {self.ghost_token}",
                 'Content-Type': 'application/json'
             }
-            logger.info("Adding activities: \n" + formatted_acts)
+            logger.info("import_activities Adding activities: \n" + formatted_acts)
             try:
+                logger.debug(f"import_activities {url} adding {len(formatted_acts)} activities")
+                self.__log_network_request(url, f"adding {len(formatted_acts)} activities")
                 response = requests.request("POST", url, headers=headers, data=payload)
             except Exception as e:
-                logger.warning(e)
+                logger.warning(f"import_activities {url} exception; {e}")
+                self.__log_network_request_error(url, f"with payload: {payload} failed with {e}")
                 return False
             if response.status_code == 201:
-                logger.info(f"created {formatted_acts}")
+                logger.info(f"import_activities {url} created {len(formatted_acts)} activities")
             else:
-                logger.warning("Failed create: " + response.text)
+                self.__log_network_request_error(
+                    url,
+                    f"Failed create following activities {formatted_acts}: {response.text} "
+                )
             if response.status_code != 201:
                 return False
         return True
@@ -136,9 +133,9 @@ class GhostfolioApi:
             logger.error(e)
             return False
         if response.status_code == 201:
-            logger.info(f"created {response.json()['id']}")
+            self.__log_network_request(url, f"created {response.json()['id']}")
         else:
-            logger.error("Failed create: " + response.text)
+            self.__log_network_request_error(url, f"Failed create: {response.text}")
         return response.status_code == 201
 
     def create_or_get_ibkr_account_id(self):
@@ -159,8 +156,7 @@ class GhostfolioApi:
         }
         return self.create_account(account)
 
-    def delete_all_activities(self):
-        account_id = self.create_or_get_ibkr_account_id()
+    def delete_all_activities(self, account_id):
         acts = self.get_all_activities_for_account(account_id)
 
         if not acts:
@@ -210,6 +206,7 @@ class GhostfolioApi:
         payload = {}
         headers = self.__get_header_with_ghostfolio_auth()
         try:
+            self.__log_network_request(url)
             response = requests.request("GET", url, headers=headers, data=payload)
         except Exception as e:
             logger.error(e)
@@ -222,12 +219,23 @@ class GhostfolioApi:
     def get_ticker(self, isin, symbol):
         # for now only yahoo
         data_source = "YAHOO"
-        successful, ticker = self.lookup_asset(isin)
+        successful, ticker = self.__lookup_asset(isin)
         if not successful:
-            successful, ticker = self.lookup_asset(symbol)
+            successful, ticker = self.__lookup_asset(symbol)
             if not successful:
                 raise Exception(f"no symbol found for {isin} {symbol}")
         return data_source, ticker.get('symbol'), ticker.get('currency')
+
+    def __lookup_asset(self, query):
+        url = f"{self.ghost_host}/api/v1/symbol/lookup?query={query}"
+        headers = self.__get_header_with_ghostfolio_auth()
+        try:
+            self.__log_network_request(url)
+            response = requests.request("GET", url, headers=headers)
+            return self.validate_and_convert_response_to_assets(response)
+        except Exception as e:
+            self.__log_network_request_error(url, f"lookup asset: {query} failed with {e}")
+            return False, None
 
     @staticmethod
     def __generate_chunks(lst, n):
@@ -238,3 +246,11 @@ class GhostfolioApi:
         return {
             'Authorization': f"Bearer {self.ghost_token}",
         }
+
+    def __log_network_request(self, url, message="no-message"):
+        previous_function_name = sys._getframe(1).f_code.co_name
+        logger.debug(f"{previous_function_name} {url}: {message}")
+
+    def __log_network_request_error(self, url, message="no-message"):
+        previous_function_name = sys._getframe(1).f_code.co_name
+        logger.error(f"{previous_function_name} {url}: {message}")
