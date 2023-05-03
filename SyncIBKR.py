@@ -1,15 +1,15 @@
 import json
-import os
 from datetime import datetime
 
 from ibflex import FlexQueryResponse, BuySell
 
 import LoggerFactory
+from EnvironmentConfiguration import EnvironmentConfiguration
 from GhostfolioApi import GhostfolioApi
 from IbkrApi import IbkrApi
 
-write_debug_files = os.environ.get("WRITE_DEBUG_FILES", "FALSE")
-logger = LoggerFactory.get_logger(__name__)
+envConf = EnvironmentConfiguration()
+logger = LoggerFactory.logger
 
 
 def get_cash_amount_from_flex(query):
@@ -138,15 +138,16 @@ class SyncIBKR:
             account_id
         )
         diff = get_diff(existing_activities, activities)
-        if write_debug_files:
+        if envConf.is_debug_files_enabled():
+            debug_file_folder = envConf.debug_file_location()
             logger.warn("Flag WRITE_DEBUG_FILES is set, writing files")
-            with open('deb_existing_activities.json', 'w') as outfile:
+            with open(f"{debug_file_folder}activities_from_gf.json", 'w') as outfile:
                 logger.warn("WRITE_DEBUG_FILES: writing existing_activities")
                 json.dump(existing_activities, outfile)
-            with open('deb_new_activities.json', 'w') as outfile:
+            with open(f"{debug_file_folder}activities_from_ib.json", 'w') as outfile:
                 logger.warn("WRITE_DEBUG_FILES: writing new activities")
                 json.dump(activities, outfile)
-            with open('deb_diff_activities.json', 'w') as outfile:
+            with open(f"{debug_file_folder}activities_diff.json", 'w') as outfile:
                 logger.warn("WRITE_DEBUG_FILES: writing new activities differences")
                 json.dump(diff, outfile)
 

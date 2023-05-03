@@ -54,7 +54,7 @@ The symbol lookup is done on ghostfolio. Watch out for messages like: `fuzzy mat
 
 ### asset classes
 
-Currently only stocks are supported.  in the log you'll able to find messages like `DEBUG:SyncIBKR: ignore AssetClass.OPTION: SYMBOL   ID` or `DEBUG:SyncIBKR: ignore AssetClass.CASH: USD.HKD`.
+Currently, only stocks are supported.  in the log you'll be able to find messages like `DEBUG:SyncIBKR: ignore AssetClass.OPTION: SYMBOL   ID` or `DEBUG:SyncIBKR: ignore AssetClass.CASH: USD.HKD`.
 They are summarised in a info statement. For example: `INFO:SyncIBKR: Skipped: {<AssetClass.OPTION: 'OPT'>: 14, <AssetClass.CASH: 'CASH'>: 20}`. May be ghostfolio will support options one day :)
 
 
@@ -63,3 +63,4 @@ They are summarised in a info statement. For example: `INFO:SyncIBKR: Skipped: {
 * Feel free to submit any issue or PR's you think necessary
 * `pip install ruff` [pretty fast linter](https://github.com/charliermarsh/ruff) to lint
 * `pip install pre-commit` [pre-commit](https://pre-commit.com/) to run the linter before commit 
+* run-it `ruff check *.py` 

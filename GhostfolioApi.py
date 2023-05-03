@@ -8,7 +8,7 @@ from cachetools import TTLCache, cached
 import LoggerFactory
 
 cache = TTLCache(maxsize=100, ttl=300)
-logger = LoggerFactory.get_logger(__name__)
+logger = LoggerFactory.logger
 
 
 class GhostfolioApi:

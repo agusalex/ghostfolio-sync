@@ -1,18 +1,16 @@
-import os
-
 import colorlog
 
-log_level = os.environ.get("LOG_LEVEL", "INFO")
+from EnvironmentConfiguration import EnvironmentConfiguration
 
+envConf = EnvironmentConfiguration()
+log_level = envConf.log_level()
 
-def get_logger(name=__name__):
-    handler = colorlog.StreamHandler()
-    handler.setFormatter(
-        colorlog.ColoredFormatter(
-            '%(log_color)s%(asctime)s %(levelname)s:%(name)s: %(message)s'
-        )
+handler = colorlog.StreamHandler()
+handler.setFormatter(
+    colorlog.ColoredFormatter(
+        '%(log_color)s%(asctime)s %(levelname)s:%(filename)s: %(message)s'
     )
-    logger = colorlog.getLogger(name)
-    logger.setLevel(log_level)
-    logger.addHandler(handler)
-    return logger
+)
+logger = colorlog.getLogger()
+logger.setLevel(log_level)
+logger.addHandler(handler)

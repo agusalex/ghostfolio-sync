@@ -1,9 +1,14 @@
+from datetime import datetime
+
+from cachetools import cached, TTLCache
 from ibflex import client, parser, FlexQueryResponse
 from cachetools import cached, TTLCache
 import LoggerFactory
+from EnvironmentConfiguration import EnvironmentConfiguration
 
-logger = LoggerFactory.get_logger(__name__)
+logger = LoggerFactory.logger
 cache = TTLCache(maxsize=5, ttl=300)
+envConf = EnvironmentConfiguration()
 
 
 class IbkrApi():

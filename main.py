@@ -15,7 +15,7 @@ ghost_hosts = os.environ.get("GHOST_HOST", "https://ghostfol.io").split(",")
 ghost_currency = os.environ.get("GHOST_CURRENCY", "USD").split(",")
 operations = os.environ.get("OPERATION", SYNCIBKR).split(",")
 
-logger = LoggerFactory.get_logger(__name__)
+logger = LoggerFactory.logger
 
 if __name__ == '__main__':
     for i in range(len(operations)):
