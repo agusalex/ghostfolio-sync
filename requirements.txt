@@ -1,5 +1,4 @@
-git+https://github.com/agusalex/ibflex@master
-requests==2.28.2
-urllib3==1.26.15
+ibflex @ git+https://github.com/csingley/ibflex@bbdd9f726fe767a28ebb3088d2ef1705abcb3ef8
+requests==2.29.0
 colorlog==6.7.0
 cachetools==5.3.0
