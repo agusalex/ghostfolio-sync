@@ -1,13 +1,22 @@
 #!/bin/sh
 
-FILE=/root/ghost.lock
+FILE="$HOME/ghost.lock"
+take()
+{
+  touch "$FILE"
+  date > "$FILE"
+}
+
+release()
+{
+  rm "$FILE"
+}
 
 if [ ! -f "$FILE" ]; then
-   touch $FILE
    echo "Starting Sync"
-   cd /usr/app/src || exit
-   python main.py
-   rm $FILE
+   take
+   "$VIRTUAL_ENV/bin/python3" main.py
+   release
    echo "Finished Sync"
 else
    echo "Lock-file present $FILE, try increasing time between runs, next schedule will be $CRON"

@@ -28,6 +28,17 @@ When you configure your Flex Query give it, cash statement permissions as well a
 
 ## Run in Docker
 
+Default runs as with the following config (non root):
+-  ARG USER=wheel
+-  ARG GROUP=default
+-  ARG UID=1001
+-  ARG GID=1001
+
+Runs with with virtual env
+
+If you need debug files (set WRITE_DEBUG_FILES=TRUE), you can map the default folder /usr/app/src/out
+
+Minimal setup:
 ``` docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY```
 
 ### More Options
@@ -41,7 +52,8 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all configured accounts) |
 |**LOG_LEVEL** | (optional) INFO (default): standard python (logging levels)[https://docs.python.org/3/library/logging.html#logging-levels] are supported |
-|**WRITE_DEBUG_FILES** | (optional) FALSE (default): write activities to debug file |
+|**WRITE_DEBUG_FILES** | (optional) FALSE (default): write debug files |
+|**FILE_WRITE_LOCATION** | (optional) "" (default): write debug files to this folder |
 
 ## Important / Need to know
 
@@ -56,7 +68,6 @@ The symbol lookup is done on ghostfolio. Watch out for messages like: `fuzzy mat
 
 Currently, only stocks are supported.  in the log you'll be able to find messages like `DEBUG:SyncIBKR: ignore AssetClass.OPTION: SYMBOL   ID` or `DEBUG:SyncIBKR: ignore AssetClass.CASH: USD.HKD`.
 They are summarised in a info statement. For example: `INFO:SyncIBKR: Skipped: {<AssetClass.OPTION: 'OPT'>: 14, <AssetClass.CASH: 'CASH'>: 20}`. May be ghostfolio will support options one day :)
-
 
 ## Contributing
 
