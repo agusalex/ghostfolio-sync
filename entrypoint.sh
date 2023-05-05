@@ -7,9 +7,10 @@ single_run(){
 
 cron_run(){
   mkdir -p "$HOME/crontabs"
-  echo "$CRON /bin/sh $PWD/run.sh" > "$HOME/crontabs/$USER";
+  CRON_FILE="$HOME/crontabs/$USER"
+  echo "$CRON /bin/sh $HOME/run.sh" > "$CRON_FILE";
   echo "Next run will be scheduled by the following cron: $CRON"
-  supercronic "$HOME/crontabs/$USER"
+  supercronic "$CRON_FILE"
 }
 
 USER=$(whoami)

@@ -49,7 +49,7 @@ Minimal setup:
 |**GHOST_TOKEN**  | The token for your ghostfolio account |
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
 |**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
-|**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
+|**CRON**  | (optional) To run on a [Cron Schedule](https://github.com/aptible/supercronic/tree/master/cronexpr#implementation) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all configured accounts) |
 |**LOG_LEVEL** | (optional) INFO (default): standard python (logging levels)[https://docs.python.org/3/library/logging.html#logging-levels] are supported |
 |**WRITE_DEBUG_FILES** | (optional) FALSE (default): write debug files |
