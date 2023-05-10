@@ -1,6 +1,5 @@
 import json
 from collections import namedtuple
-from typing import List
 
 import requests
 import sys
@@ -90,7 +89,7 @@ class GhostfolioApi:
         else:
             raise Exception(response)
 
-    def get_all_activities(self) -> list[GhostfolioImportActivity] :
+    def get_all_activities(self) -> list[GhostfolioImportActivity]:
         url = f"{self.ghost_host}/api/v1/order"
 
         payload = {}
@@ -109,7 +108,7 @@ class GhostfolioApi:
             self.__log_request(url, f"received {len(activities)} activities")
             import_activities: list[GhostfolioImportActivity] = []
             for activity in activities:
-                import_activities.append( self.map_activity_to_import_activity(activity))
+                import_activities.append(self.map_activity_to_import_activity(activity))
             return import_activities
         else:
             return []
@@ -191,7 +190,9 @@ class GhostfolioApi:
         return self.create_account(account)
 
     def delete_all_activities(self, account_id):
-        acts: list[GhostfolioImportActivity] = self.get_all_activities_for_account(account_id)
+        acts: list[GhostfolioImportActivity] = self.get_all_activities_for_account(
+            account_id
+        )
 
         if not acts:
             logger.info("No activities to delete")
@@ -334,7 +335,7 @@ class GhostfolioApi:
                 if platform['name'] == self.ibkr_platform_name:
                     return platform['id']
             raise Exception(f"no platform found for name {self.ibkr_platform_name} "
-                            f"in {response.json()['platforms']}" )
+                            f"in {response.json()['platforms']}")
         except Exception as e:
             self.__log_request_error(url, f"lookup failed with {e}")
             return None

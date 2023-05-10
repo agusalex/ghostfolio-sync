@@ -40,7 +40,10 @@ def format_act(act: GhostfolioImportActivity):
     }
 
 
-def is_act_present(act_search: GhostfolioImportActivity, acts: list[GhostfolioImportActivity]):
+def is_act_present(
+        act_search: GhostfolioImportActivity,
+        acts: list[GhostfolioImportActivity]
+):
     # if sync has written id as comment,
     # extract it, it could be the transaction id
     comment = act_search.comment
