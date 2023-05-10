@@ -1,11 +1,11 @@
 import os
 import LoggerFactory
+from GhostfolioApi import GhostfolioConfig
+from IbkrApi import IbkrConfig
 from SyncIBKR import SyncIBKR
 
 SYNCIBKR = "SYNCIBKR"
-
 DELETEALL = "DELETEALL"
-
 GETALLACTS = "GETALLACTS"
 
 ghost_tokens = os.environ.get('GHOST_TOKEN').split(",")
@@ -20,11 +20,17 @@ logger = LoggerFactory.logger
 if __name__ == '__main__':
     for i in range(len(operations)):
         ghost = SyncIBKR(
-            ghost_hosts[i],
-            ibkr_tokens[i],
-            ibkr_queries[i],
-            ghost_tokens[i],
-            ghost_currency[i]
+            IbkrConfig(
+                ibkr_tokens[i],
+                ibkr_queries[i]),
+            GhostfolioConfig(
+                ghost_tokens[i],
+                ghost_hosts[i],
+                ghost_currency[i],
+                "IBKR",
+                None,
+                "Interactive Brokers"
+            ),
         )
         if operations[i] == SYNCIBKR:
             logger.info("Starting sync")

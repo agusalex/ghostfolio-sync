@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 
 from cachetools import cached, TTLCache
@@ -6,15 +7,18 @@ from ibflex import client, parser, FlexQueryResponse
 import LoggerFactory
 from EnvironmentConfiguration import EnvironmentConfiguration
 
+IbkrConfig = namedtuple('IbkrConfig',
+                        'token query_id')
+
 logger = LoggerFactory.logger
 cache = TTLCache(maxsize=5, ttl=300)
 envConf = EnvironmentConfiguration()
 
 
 class IbkrApi():
-    def __init__(self, ibkr_token, ibkr_query):
-        self.ibkr_token = ibkr_token
-        self.ibkr_query = ibkr_query
+    def __init__(self, ibkrConfig: IbkrConfig):
+        self.ibkr_token = ibkrConfig.token
+        self.ibkr_query = ibkrConfig.query_id
 
     @cached(cache)
     def get_and_parse_query(self):
