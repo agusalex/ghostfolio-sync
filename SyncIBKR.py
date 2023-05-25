@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from ibflex import FlexQueryResponse, BuySell
+from ibflex import FlexQueryResponse, BuySell, Trade
 
 import LoggerFactory
 from EnvironmentConfiguration import EnvironmentConfiguration
@@ -30,7 +30,7 @@ def get_cash_amount_from_flex(query):
 
 def format_act(act: GhostfolioImportActivity):
     return {
-        "accountId": act.account_id,
+        "accountId": act.accountId,
         "date": act.date[0:18],
         "fee": float(act.fee),
         "quantity": act.quantity,
@@ -89,63 +89,12 @@ class SyncIBKR:
         date_format = "%Y-%m-%d"
 
         self.set_cash_to_account(account_id, get_cash_amount_from_flex(query))
-        skipped_categories_counter = {}
-        for trade in query.FlexStatements[0].Trades:
-
-            if trade.assetCategory is not trade.assetCategory.STOCK:
-                logger.debug(f"ignore {trade.assetCategory}, {trade.symbol}: {trade}")
-                existing_skips = skipped_categories_counter.get(trade.assetCategory, 0)
-                skipped_categories_counter[trade.assetCategory] = existing_skips + 1
-                continue
-
-            if trade.openCloseIndicator is None:
-                logger.warning("trade is not open or close (ignoring): %s", trade)
-                continue
-
-            date = datetime.strptime(str(trade.tradeDate), date_format)
-            iso_format = date.isoformat()
-            symbol = self.map_symbol(trade)
-            buy_sell = self.map_buy_sell(trade)
-
-            lookup_ticker: GhostfolioTicker = self. \
-                ghostfolio_api.get_ticker(trade.isin, symbol)
-            unit_price = float(trade.tradePrice)
-            unit_currency = trade.currency
-            fee = float(trade.taxes)
-
-            # Handling special case:
-            # ghostfolio is checking currency against source (yahoo)
-            if trade.currency != lookup_ticker.currency:
-                # converting GBP to GBp (IB vs Yahoo)
-                if trade.currency == 'GBP' and lookup_ticker.currency == 'GBp':
-                    logger.debug("Converting GBP to GBp for Yahoo compatibility")
-                    unit_price *= 100
-                    unit_currency = 'GBp'
-                    if trade.ibCommissionCurrency == 'GBP':
-                        fee += float((trade.ibCommission * 100) * -1)
-            else:
-                fee += float(trade.ibCommission * -1)
-
-            quantity = abs(float(trade.quantity))
-            comment = f"<sync-trade-transactionID>" \
-                      f"{trade.transactionID}" \
-                      f"</sync-trade-transactionID>"
-
-            activities.append(GhostfolioImportActivity(
-                unit_currency,
-                lookup_ticker.data_source,
-                iso_format,
-                fee,
-                quantity,
-                lookup_ticker.symbol,
-                buy_sell,
-                unit_price,
+        for trade in self.ibkr_api.get_stock_transactions(query):
+            activity: GhostfolioImportActivity = self.map_trade_to_gf(
                 account_id,
-                comment
-            ))
-
-        if len(skipped_categories_counter) > 0:
-            logger.info(f"Skipped: {skipped_categories_counter}")
+                date_format,
+                trade)
+            activities.append(activity)
 
         existing_activities: list[GhostfolioImportActivity] = \
             self.ghostfolio_api.get_all_activities_for_account(account_id)
@@ -165,9 +114,70 @@ class SyncIBKR:
                 json.dump(diff, outfile)
 
         if len(diff) == 0:
-            logger.info("Nothing new to sync")
+            logger.info("Nothing new to sync (Buy/Sell)")
         else:
             self.ghostfolio_api.import_activities(diff)
+            logger.info(f"Importet total {len(diff)} trades, "
+                        f"for symbols: {list(map(lambda x: x.symbol, diff))}")
+        # Sync dividends
+        import_dividends = []
+        for isin_to_import_dividends in [*set(list(
+                map(lambda x: x[0].isin, self.ibkr_api.get_cash_transactions(query))))]:
+            activities = self.ghostfolio_api.get_dividends_to_import(
+                account_id,
+                isin_to_import_dividends,
+            )
+            if activities:
+                for activity in activities:
+                    import_dividends.append(activity)
+        if len(import_dividends) > 0:
+            self.ghostfolio_api.import_activities(import_dividends)
+            logger.info(
+                f"Imported total {len(import_dividends)} dividends, "
+                f"for symbols: {list(map(lambda x: x.symbol, import_dividends))}")
+        else:
+            logger.info("Nothing new to sync (Dividens)")
+
+
+    def map_trade_to_gf(self, account_id, date_format,
+                        trade: Trade) -> GhostfolioImportActivity:
+        date = datetime.strptime(str(trade.tradeDate), date_format)
+        iso_format = date.isoformat()
+        symbol = self.map_symbol(trade)
+        buy_sell = self.map_buy_sell(trade)
+        lookup_ticker: GhostfolioTicker = self. \
+            ghostfolio_api.get_ticker(trade.isin, symbol)
+        unit_price = float(trade.tradePrice)
+        unit_currency = trade.currency
+        fee = float(trade.taxes)
+        # Handling special case:
+        # ghostfolio is checking currency against source (yahoo)
+        if trade.currency != lookup_ticker.currency:
+            # converting GBP to GBp (IB vs Yahoo)
+            if trade.currency == 'GBP' and lookup_ticker.currency == 'GBp':
+                logger.debug("Converting GBP to GBp for Yahoo compatibility")
+                unit_price *= 100
+                unit_currency = 'GBp'
+                if trade.ibCommissionCurrency == 'GBP':
+                    fee += float((trade.ibCommission * 100) * -1)
+        else:
+            fee += float(trade.ibCommission * -1)
+        quantity = abs(float(trade.quantity))
+        comment = f"<sync-trade-transactionID>" \
+                  f"{trade.transactionID}" \
+                  f"</sync-trade-transactionID>"
+        return GhostfolioImportActivity(
+            unit_currency,
+            lookup_ticker.data_source,
+            iso_format,
+            fee,
+            quantity,
+            lookup_ticker.symbol,
+            buy_sell,
+            unit_price,
+            account_id,
+            comment
+        )
 
     def map_symbol(self, trade):
         symbol = trade.symbol
@@ -175,12 +185,14 @@ class SyncIBKR:
             symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
         return symbol
 
+
     def map_buy_sell(self, trade):
         if trade.buySell == BuySell.BUY:
             buy_sell = "BUY"
         else:
             buy_sell = "SELL"
         return buy_sell
+
 
     def set_cash_to_account(self, account_id, cash):
         if cash == 0:
@@ -197,6 +209,7 @@ class SyncIBKR:
         }
 
         self.ghostfolio_api.update_account(account_id, account)
+
 
     def delete_all_activities(self):
         account_id = self.ghostfolio_api.create_or_get_ibkr_account()['id']

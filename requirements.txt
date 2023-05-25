@@ -1,4 +1,4 @@
 ibflex @ git+https://github.com/csingley/ibflex@bbdd9f726fe767a28ebb3088d2ef1705abcb3ef8
 requests==2.29.0
 colorlog==6.7.0
-cachetools==5.3.0
+diskcache==5.6.1

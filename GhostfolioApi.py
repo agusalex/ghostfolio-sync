@@ -4,7 +4,7 @@ from collections import namedtuple
 import requests
 import sys
 
-from cachetools import TTLCache, cached
+from diskcache import Cache
 
 import LoggerFactory
 
@@ -17,11 +17,10 @@ GhostfolioTicker = namedtuple('GhostfolioTicker',
                               'data_source, symbol, currency')
 GhostfolioImportActivity = namedtuple('GhostfolioImportActivity',
                                       'currency, dataSource, date, fee, quantity, '
-                                      'symbol, type, unitPrice, account_id, comment')
+                                      'symbol, type, unitPrice, accountId, comment')
 
 DATA_SOURCE_YAHOO = "YAHOO"
-
-cache = TTLCache(maxsize=100, ttl=300)
+cache = Cache(directory='.cache/ghostfolio-api')
 logger = LoggerFactory.logger
 
 
@@ -69,7 +68,7 @@ class GhostfolioApi:
             self.__log_request(url)
             response = requests.request("DELETE", url, headers=headers, data=payload)
         except Exception as e:
-            self.__log_request_error(url, e)
+            self.__log_request_error(url, e.__str__())
             return False
 
         return response.status_code == 200
@@ -113,27 +112,28 @@ class GhostfolioApi:
         else:
             return []
 
-    def import_activities(self, bulk):
+    def import_activities(self, bulk: list[GhostfolioImportActivity]):
         chunks = self.__generate_chunks(bulk, 10)
         for acts in chunks:
             url = f"{self.ghost_host}/api/v1/import"
+            sorted_acts: list[GhostfolioImportActivity] \
+                = sorted(acts, key=lambda x: x.date)
+            acts_as_dicts = []
+            for act in sorted_acts:
+                acts_as_dicts.append(act._asdict())
             formatted_acts = json.dumps(
-                {"activities": sorted(acts, key=lambda x: x["date"])}
+                {"activities": acts_as_dicts}
             )
             payload = formatted_acts
             headers = {
                 'Authorization': f"Bearer {self.ghost_token}",
                 'Content-Type': 'application/json'
             }
-            logger.info("import_activities Adding activities: \n" + formatted_acts)
+            logger.debug("import_activities Adding activities: \n" + formatted_acts)
             try:
-                logger.debug(
-                    f"import_activities {url} adding {len(formatted_acts)} activities"
-                )
-                self.__log_request(url, f"adding {len(formatted_acts)} activities")
+                self.__log_request(url, f"adding {len(acts_as_dicts)} activities")
                 response = requests.request("POST", url, headers=headers, data=payload)
             except Exception as e:
-                logger.warning(f"import_activities {url} exception; {e}")
                 self.__log_request_error(
                     url,
                     f"with payload: {payload} failed with {e}"
@@ -141,11 +141,11 @@ class GhostfolioApi:
                 return False
             if response.status_code == 201:
                 logger.info(
-                    f"import_activities {url} created {len(formatted_acts)} activities"
+                    f"import_activities {url} created {len(acts_as_dicts)} activities"
                 )
             else:
                 message = f"Failed create following activities:" \
-                          f" {formatted_acts}: {response.text}"
+                          f" {acts_as_dicts}: {response.text}"
                 self.__log_request_error(url, message)
             if response.status_code != 201:
                 return False
@@ -200,13 +200,13 @@ class GhostfolioApi:
         complete = True
 
         for act in acts:
-            if act.account_id == account_id:
-                act_complete = self.delete_activity(act.account_id)
+            if act.accountId == account_id:
+                act_complete = self.delete_activity(act.accountId)
                 complete = complete and act_complete
                 if act_complete:
-                    logger.info("Deleted: %s", act.account_id)
+                    logger.info("Deleted: %s", act.accountId)
                 else:
-                    logger.warning("Failed Delete: %s", act.account_id)
+                    logger.warning("Failed Delete: %s", act.accountId)
         return complete
 
     def get_all_activities_for_account(
@@ -216,11 +216,12 @@ class GhostfolioApi:
         acts: list[GhostfolioImportActivity] = self.get_all_activities()
         filtered_acts: list[GhostfolioImportActivity] = []
         for act in acts:
-            if act.account_id == account_id:
+            if act.accountId == account_id:
                 filtered_acts.append(act)
         return filtered_acts
 
-    def map_activity_to_import_activity(self, act) -> GhostfolioImportActivity:
+    @staticmethod
+    def map_activity_to_import_activity(act) -> GhostfolioImportActivity:
         symbol_profile = act['SymbolProfile']
         import_activity = GhostfolioImportActivity(
             symbol_profile['currency'],
@@ -232,7 +233,7 @@ class GhostfolioApi:
             act['type'],
             act['unitPrice'],
             act['accountId'],
-            act['comment'],
+            act.get('comment'),
         )
         return import_activity
 
@@ -254,6 +255,7 @@ class GhostfolioApi:
         logger.warning(f"create_account: Failed creating {url}: {account}")
         return ""
 
+    @cache.memoize(tag='get_ghostfolio_accounts', expire=600)
     def get_ghostfolio_accounts(self):
         url = f"{self.ghost_host}/api/v1/account"
 
@@ -270,7 +272,6 @@ class GhostfolioApi:
         else:
             raise Exception(response)
 
-    @cached(cache)
     def get_ticker(self, isin, symbol) -> GhostfolioTicker:
         override: SymbolLookupOverride = self.__lookup_overrides(isin, symbol)
         if override.exists:
@@ -292,6 +293,7 @@ class GhostfolioApi:
             ticker.get('currency')
         )
 
+    @cache.memoize(tag='__lookup_asset')
     def __lookup_asset(self, query):
         url = f"{self.ghost_host}/api/v1/symbol/lookup?query={query}"
         headers = self.__get_header_with_ghostfolio_auth()
@@ -304,7 +306,7 @@ class GhostfolioApi:
             return False, None
 
     @staticmethod
-    def __generate_chunks(lst, n):
+    def __generate_chunks(lst: list[GhostfolioImportActivity], n):
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
 
@@ -323,6 +325,8 @@ class GhostfolioApi:
 
     def __lookup_overrides(self, isin, symbol) -> SymbolLookupOverride:
         # TODO create a way to lookup stuff
+        if isin == 'DE000A3MQQ17':
+            return SymbolLookupOverride(True, DATA_SOURCE_YAHOO, 'FRE.DE', 'EUR')
         return SymbolLookupOverride(False, None, None, None)
 
     def __get_ibkr_platform_id(self):
@@ -339,3 +343,25 @@ class GhostfolioApi:
         except Exception as e:
             self.__log_request_error(url, f"lookup failed with {e}")
             return None
+
+    def get_dividends_to_import(self, account_id, isin):
+        ticker = self.get_ticker(isin, None)
+        import_list = list(filter(lambda x: x.accountId == account_id,
+                                  self.__get_dividens_to_import(ticker)))
+        if import_list:
+            return import_list
+        return None
+
+    def __get_dividends_to_import(self, ticker) -> list[GhostfolioImportActivity]:
+        url = f"{self.ghost_host}/api/v1/" \
+              f"import/dividends/{ticker.data_source}/{ticker.symbol}"
+        headers = self.__get_header_with_ghostfolio_auth()
+        try:
+            self.__log_request(url)
+            response = requests.request("GET", url, headers=headers)
+            activities_to_import = list(filter(lambda x: x.get('error') is None,
+                                               list(response.json().get('activities'))))
+            return list(map(lambda x: self.map_activity_to_import_activity(x),
+                            activities_to_import))
+        except Exception as e:
+            self.__log_request_error(url, f"lookup dividens: failed with {e}")

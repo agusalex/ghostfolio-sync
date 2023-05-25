@@ -1,8 +1,5 @@
 import os
 
-from cachetools import TTLCache
-
-cache = TTLCache(maxsize=5, ttl=300)
 log_level = os.environ.get("LOG_LEVEL", "INFO")
 write_debug_files = os.environ.get("WRITE_DEBUG_FILES", "FALSE")
 write_debug_files_location = os.environ.get("FILE_WRITE_LOCATION", "")
