@@ -347,7 +347,7 @@ class GhostfolioApi:
     def get_dividends_to_import(self, account_id, isin):
         ticker = self.get_ticker(isin, None)
         import_list = list(filter(lambda x: x.accountId == account_id,
-                                  self.__get_dividens_to_import(ticker)))
+                                  self.__get_dividends_to_import(ticker)))
         if import_list:
             return import_list
         return None
