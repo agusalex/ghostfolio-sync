@@ -25,7 +25,7 @@ When you configure your Flex Query give it, cash statement permissions as well a
 
 ## Run in Docker
 
-``` docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY```
+```docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR-TOKEN=YOUR-IBKR-TOKEN -e IBKR-QUERY=YOUR-IBKR-QUERY agusalex/ghostfolio-sync```
 
 ### More Options
 | Envs |Description  |
