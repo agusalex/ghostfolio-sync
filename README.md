@@ -1,4 +1,10 @@
 # Ghostfolio-Sync
+
+[![Docker Hub package][dockerhub-badge]][dockerhub-link]
+
+[dockerhub-badge]: https://img.shields.io/badge/images%20on-Docker%20Hub-blue.svg
+[dockerhub-link]: https://hub.docker.com/repository/docker/agusalex/ghostfolio-sync "Docker Hub Image"
+
 Sync your Ghostfolio with IBKR ( more to come? )
 
 ## Setup
@@ -19,7 +25,7 @@ When you configure your Flex Query give it, cash statement permissions as well a
 
 ## Run in Docker
 
-``` docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY```
+```docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR-TOKEN=YOUR-IBKR-TOKEN -e IBKR-QUERY=YOUR-IBKR-QUERY agusalex/ghostfolio-sync```
 
 ### More Options
 | Envs |Description  |
@@ -28,5 +34,13 @@ When you configure your Flex Query give it, cash statement permissions as well a
 |**IBKR_QUERY**  | Your Query ID |
 |**GHOST_TOKEN**  | The token for your ghostfolio account |
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
+|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
+
+## Contributing
+
+* Feel free to submit any issue or PR's you think necessary
+* If you like the work and want to buy me a coffee you are more than welcome :)
+
+<a href="https://www.buymeacoffee.com/YiQkYsghUQ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>

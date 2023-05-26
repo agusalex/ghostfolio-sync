@@ -57,9 +57,10 @@ def get_diff(old_acts, new_acts):
 class SyncIBKR:
     IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
 
-    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token):
+    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token, ghost_currency):
         self.ghost_token = ghost_token
         self.ghost_host = ghost_host
+        self.ghost_currency = ghost_currency
         self.ibkrtoken = ibkrtoken
         self.ibkrquery = ibkrquery
 
@@ -76,7 +77,9 @@ class SyncIBKR:
             return
         self.set_cash_to_account(account_id, get_cash_amount_from_flex(query))
         for trade in query.FlexStatements[0].Trades:
-            if trade.openCloseIndicator.CLOSE:
+            if trade.openCloseIndicator is None:
+                print("trade is not open or close (ignoring): %s", trade)
+            elif trade.openCloseIndicator.CLOSE:
                 date = datetime.strptime(str(trade.tradeDate), date_format)
                 iso_format = date.isoformat()
                 symbol = trade.symbol
@@ -110,10 +113,15 @@ class SyncIBKR:
         if cash == 0:
             print("No cash set, no cash retrieved")
             return False
-        account = {"accountType": "SECURITIES", "balance": float(cash), "id": account_id, "currency": "USD",
-                   "isExcluded": False,
-                   "name": "IBKR",
-                   "platformId": self.IBKRCATEGORY}
+        account = {
+            "accountType": "SECURITIES",
+            "balance": float(cash),
+            "id": account_id,
+            "currency": self.ghost_currency,
+            "isExcluded": False,
+            "name": "IBKR",
+            "platformId": self.IBKRCATEGORY
+        }
 
         url = f"{self.ghost_host}/api/v1/account/{account_id}"
 
@@ -193,8 +201,14 @@ class SyncIBKR:
         return response.status_code == 201
 
     def create_ibkr_account(self):
-        account = {"accountType": "SECURITIES", "balance": 0, "currency": "USD", "isExcluded": False, "name": "IBKR",
-                   "platformId": "9da3a8a7-4795-43e3-a6db-ccb914189737"}
+        account = {
+            "accountType": "SECURITIES",
+            "balance": 0,
+            "currency": self.ghost_currency,
+            "isExcluded": False,
+            "name": "IBKR",
+            "platformId": "9da3a8a7-4795-43e3-a6db-ccb914189737"
+        }
 
         url = f"{self.ghost_host}/api/v1/account"
 
