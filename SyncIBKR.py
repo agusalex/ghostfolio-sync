@@ -95,7 +95,7 @@ class SyncIBKR:
                     "date": iso_format,
                     "fee": float(0),
                     "quantity": abs(float(trade.quantity)),
-                    "symbol": symbol,
+                    "symbol": symbol.replace(" ", "-"),
                     "type": buysell,
                     "unitPrice": float(trade.tradePrice)
                 })
