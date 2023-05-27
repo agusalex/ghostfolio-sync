@@ -5,7 +5,7 @@
 [dockerhub-badge]: https://img.shields.io/badge/images%20on-Docker%20Hub-blue.svg
 [dockerhub-link]: https://hub.docker.com/repository/docker/agusalex/ghostfolio-sync "Docker Hub Image"
 
-Sync your Ghostfolio with IBKR ( more to come? )
+Sync your Ghostfolio with IBKR ( more to come? Help is always welcome! )
 
 ## Setup
 
