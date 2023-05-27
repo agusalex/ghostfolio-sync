@@ -88,8 +88,11 @@ class SyncIBKR:
 
                 if trade.buySell == BuySell.BUY:
                     buysell = "BUY"
-                else:
+                elif trade.buySell == BuySell.SELL:
                     buysell = "SELL"
+                else:
+                    print("trade is not buy or sell (ignoring): %s", trade)
+                    continue
 
                 activities.append({
                     "accountId": account_id,
