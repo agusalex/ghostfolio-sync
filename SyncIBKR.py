@@ -20,11 +20,11 @@ def get_cash_amount_from_flex(query):
     try:
         cash += query.FlexStatements[0].CashReport[0].endingCash
     except Exception as e:
-        print(e)
+        logger.info(e)
     try:
         cash += query.FlexStatements[0].CashReport[0].endingCashPaxos
     except Exception as e:
-        print(e)
+        logger.info(e)
     return cash
 
 
