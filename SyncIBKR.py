@@ -85,7 +85,8 @@ class SyncIBKR:
                 symbol = trade.symbol
                 if ".USD-PAXOS" in trade.symbol:
                     symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
-
+                elif "VUAA" in trade.symbol:
+                    symbol = trade.symbol + ".L"
                 if trade.buySell == BuySell.BUY:
                     buysell = "BUY"
                 elif trade.buySell == BuySell.SELL:
@@ -96,6 +97,7 @@ class SyncIBKR:
 
                 activities.append({
                     "accountId": account_id,
+                    "comment": None,
                     "currency": trade.currency,
                     "dataSource": "YAHOO",
                     "date": iso_format,
