@@ -121,8 +121,7 @@ class SyncIBKR:
                         f"for symbols: {list(map(lambda x: x.symbol, diff))}")
         # Sync dividends
         import_dividends = []
-        for isin_to_import_dividends in [*set(list(
-                map(lambda x: x[0].isin, self.ibkr_api.get_cash_transactions(query))))]:
+        for isin_to_import_dividends in self.ibkr_api.get_cash_transaction_isin(query):
             activities = self.ghostfolio_api.get_dividends_to_import(
                 account_id,
                 isin_to_import_dividends,

@@ -359,8 +359,9 @@ class GhostfolioApi:
         try:
             self.__log_request(url)
             response = requests.request("GET", url, headers=headers)
+            activities_existing = list(response.json().get('activities'))
             activities_to_import = list(filter(lambda x: x.get('error') is None,
-                                               list(response.json().get('activities'))))
+                                               activities_existing))
             return list(map(lambda x: self.map_activity_to_import_activity(x),
                             activities_to_import))
         except Exception as e:

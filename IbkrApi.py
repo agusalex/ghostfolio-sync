@@ -15,7 +15,7 @@ cache = Cache(directory='.cache/ibkr-api')
 envConf = EnvironmentConfiguration()
 
 
-class IbkrApi():
+class IbkrApi:
 
     def __init__(self, ibkr_config: IbkrConfig):
         self.ibkr_token = ibkr_config.token
@@ -54,7 +54,7 @@ class IbkrApi():
         return trades
 
     @staticmethod
-    def get_cash_transactions(query) -> list[list[CashTransaction]]:
+    def get_cash_transactions(query) -> list[CashTransaction]:
         cash_action_types: list[CashAction] = [CashAction.DIVIDEND,
                                                CashAction.PAYMENTINLIEU,
                                                CashAction.WHTAX]
@@ -63,26 +63,12 @@ class IbkrApi():
             lambda x: x.levelOfDetail == 'SUMMARY' and (x.type in cash_action_types),
             query.FlexStatements[0].CashTransactions
         )
-        transaction_sorted = sorted(transaction_summaries, key=lambda t: t.reportDate)
-        index = 0
-        transaction_chunks: list[list[CashTransaction]] = []
-        transaction_group: list[CashTransaction] = []
-        while index < len(transaction_sorted):
-            actual_element: CashTransaction = transaction_sorted[index]
-            next_element_index = index + 1
-            if next_element_index >= len(transaction_sorted):
-                break
-            next_element: CashTransaction = transaction_sorted[next_element_index]
-            if len(transaction_group) < 1:
-                transaction_chunks.append(transaction_group)
-                transaction_group.append(actual_element)
-            if actual_element.symbol == next_element.symbol \
-                    and actual_element.reportDate == next_element.reportDate:
-                transaction_group.append(next_element)
-            else:
-                transaction_group: list[CashTransaction] = []
-            index += 1
-        return transaction_chunks
+        return sorted(transaction_summaries, key=lambda t: t.reportDate)
+
+    @staticmethod
+    def get_cash_transaction_isin(query):
+        cash_transactions: list[CashTransaction] = IbkrApi.get_cash_transactions(query)
+        return list(set(map(lambda x: x.isin, cash_transactions)))
 
     def __query_to_file(self, response):
         timestamp = f"{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
