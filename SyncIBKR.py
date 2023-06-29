@@ -137,7 +137,6 @@ class SyncIBKR:
         else:
             logger.info("Nothing new to sync (Dividens)")
 
-
     def map_trade_to_gf(self, account_id, date_format,
                         trade: Trade) -> GhostfolioImportActivity:
         date = datetime.strptime(str(trade.tradeDate), date_format)
@@ -149,6 +148,8 @@ class SyncIBKR:
         unit_price = float(trade.tradePrice)
         unit_currency = trade.currency
         fee = float(trade.taxes)
+        if fee is None:
+            fee = 0
         # Handling special case:
         # ghostfolio is checking currency against source (yahoo)
         if trade.currency != lookup_ticker.currency:
@@ -184,14 +185,12 @@ class SyncIBKR:
             symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
         return symbol
 
-
     def map_buy_sell(self, trade):
         if trade.buySell == BuySell.BUY:
             buy_sell = "BUY"
         else:
             buy_sell = "SELL"
         return buy_sell
-
 
     def set_cash_to_account(self, account_id, cash):
         if cash == 0:
@@ -208,7 +207,6 @@ class SyncIBKR:
         }
 
         self.ghostfolio_api.update_account(account_id, account)
-
 
     def delete_all_activities(self):
         account_id = self.ghostfolio_api.create_or_get_ibkr_account()['id']
