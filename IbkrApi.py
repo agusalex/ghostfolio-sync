@@ -3,6 +3,7 @@ from datetime import datetime
 
 from diskcache import Cache
 from ibflex import client, parser, FlexQueryResponse, CashAction, CashTransaction, Trade
+from ibflex.client import ResponseCodeError
 
 import LoggerFactory
 from EnvironmentConfiguration import EnvironmentConfiguration
@@ -24,7 +25,18 @@ class IbkrApi:
     @cache.memoize(expire=3600, tag='query')
     def get_and_parse_query(self):
         logger.debug("Fetching Query")
-        response = client.download(self.ibkr_token, self.ibkr_query)
+        try:
+            response = client.download(self.ibkr_token, self.ibkr_query)
+        except ResponseCodeError as responseCodeError:
+            if responseCodeError.code == 1012:
+                logger.error("Token Expired! "
+                             "see "
+                             "https://www.interactivebrokers.com.au/en/?f=asr_statemen"
+                             "ts_tradeconfirmations&p=flexqueries4"
+                             "renew token in account management: https://www.interactiv"
+                             "ebrokers.co.uk/AccountManagement/AmAuthentication?action"
+                             "=ManageAccount")
+            raise responseCodeError
         if envConf.is_debug_files_enabled():
             self.__query_to_file(response)
         logger.debug("Parsing Query")
