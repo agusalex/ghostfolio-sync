@@ -18,7 +18,8 @@ ENV SUPERCRONIC=supercronic-linux-amd64
 ENV SUPERCRONIC_PACKAGE=supercronic-linux-amd64
 ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/$SUPERCRONIC_VERSION/$SUPERCRONIC_PACKAGE
 
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64 /bin/dumb-init
+ENV DUMP_INIT_VERSION="1.2.5"
+ADD https://github.com/Yelp/dumb-init/releases/download/v$DUMP_INIT_VERSION/dumb-init_${DUMP_INIT_VERSION}_x86_64 /bin/dumb-init
 
 RUN addgroup --gid $GID $GROUP &&  \
     adduser -S $USER -G $GROUP --uid "$UID" &&  \
