@@ -42,18 +42,19 @@ Minimal setup:
 ``` docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY```
 
 ### More Options
-| Envs |Description  |
-|--|--|
-|**IBKR_TOKEN**  | Your Token  |
-|**IBKR_QUERY**  | Your Query ID |
-|**GHOST_TOKEN**  | The token for your ghostfolio account |
-|**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
-|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
-|**CRON**  | (optional) To run on a [Cron Schedule](https://github.com/aptible/supercronic/tree/master/cronexpr#implementation) |
-|**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all configured accounts) |
+| Envs | Description                                                                                                                              |
+|--|------------------------------------------------------------------------------------------------------------------------------------------|
+|**CRON**  | (optional) To run on a [Cron Schedule](https://github.com/aptible/supercronic/tree/master/cronexpr#implementation)                       |
+|**FILE_WRITE_LOCATION** | (optional) "" (default): write debug files to this folder                                                                                |
+|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist                                                            |
+|**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio                                                                          |
+|**GHOST_TOKEN**  | The token for your ghostfolio account                                                                                                    |
+|**HEALTHCHECK_URL**  | After a successful sync, this url will be accessed                                                                                       |
+|**IBKR_QUERY**  | Your Query ID                                                                                                                            |
+|**IBKR_TOKEN**  | Your Token                                                                                                                               |
 |**LOG_LEVEL** | (optional) INFO (default): standard python (logging levels)[https://docs.python.org/3/library/logging.html#logging-levels] are supported |
-|**WRITE_DEBUG_FILES** | (optional) FALSE (default): write debug files |
-|**FILE_WRITE_LOCATION** | (optional) "" (default): write debug files to this folder |
+|**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all configured accounts)                                        |
+|**WRITE_DEBUG_FILES** | (optional) FALSE (default): write debug files                                                                                            |
 
 ## Important / Need to know
 
