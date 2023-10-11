@@ -88,7 +88,44 @@ class GhostfolioApi:
         else:
             raise Exception(response)
 
+    def get_presenter_view_activated(self) -> bool:
+        url = f"{self.ghost_host}/api/v1/user"
+        headers = self.__get_header_with_ghostfolio_auth()
+        try:
+            self.__log_request(url)
+            response = requests.request("GET", url, headers=headers)
+            ghostfolio_account_settings = response.json()['settings']
+            return 'isRestrictedView' in ghostfolio_account_settings
+        except Exception as e:
+            logger.warning(
+                f"get_all_activities {url} error while fetching all activities: {e}"
+            )
+            raise e
+
+    def set_presenterview(self, enabled):
+        url = f"{self.ghost_host}/api/v1/user/setting"
+
+        payload = '{"isRestrictedView":'
+        payload += "true" if enabled else "false"
+        payload += ' }'
+        headers = self.__get_header_with_ghostfolio_auth()
+        try:
+            self.__log_request(url)
+            response = requests.put(url, headers=headers, data=payload)
+            return response.status_code == 200
+        except Exception as e:
+            logger.warning(
+                f"set_presenterview {url} error while changing presenterview: {e}"
+            )
+            return False
+
     def get_all_activities(self) -> list[GhostfolioImportActivity]:
+        presenter_view_initial_active = self.get_presenter_view_activated()
+        if presenter_view_initial_active:
+            logger.warning("presenterview active, not syncing")
+            raise AssertionError("Presenterview is active, not syncing. "
+                                 "Please deactivate Presenterview!")
+
         url = f"{self.ghost_host}/api/v1/order"
 
         payload = {}
@@ -105,12 +142,14 @@ class GhostfolioApi:
         if response.status_code == 200:
             activities = response.json()['activities']
             self.__log_request(url, f"received {len(activities)} activities")
-            import_activities: list[GhostfolioImportActivity] = []
+            import_activities_mapped: list[GhostfolioImportActivity] = []
             for activity in activities:
-                import_activities.append(self.map_activity_to_import_activity(activity))
-            return import_activities
+                import_activities_mapped.append(
+                    self.map_activity_to_import_activity(activity))
+            return import_activities_mapped
         else:
             return []
+
 
     def import_activities(self, bulk: list[GhostfolioImportActivity]):
         chunks = self.__generate_chunks(bulk, 10)
