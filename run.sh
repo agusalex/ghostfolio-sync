@@ -27,7 +27,7 @@ if [ ! -f "$FILE" ]; then
    STATUS_CODE=$?
    release_lock
    echo "Finished Sync"
-   healthcheck $STATUS_CODE
+   do_healthcheck $STATUS_CODE
    exit $STATUS_CODE
 else
    echo "Lock-file present $FILE, try increasing time between runs, next schedule will be ${CRON:-never, no cron set}"
