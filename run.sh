@@ -1,26 +1,37 @@
 #!/bin/sh
 
-FILE="$HOME/ghost.lock"
+LOCK_FILE="$HOME/ghost.lock"
+HEALTH_FILE="$HOME/ghost.lock"
 aquire_lock()
 {
-  touch "$FILE"
-  date > "$FILE"
+  touch "$LOCK_FILE"
+  date > "$LOCK_FILE"
 }
 
 release_lock()
 {
-  rm "$FILE"
+  rm "$LOCK_FILE"
 }
 
 do_healthcheck()
 {
   local status="$1"
   if ([ -n "$HEALTHCHECK_URL" ] && [ $status -eq 0 ]); then
-    curl ${HEALTHCHECK_URL} > /dev/null; 
+    wget ${HEALTHCHECK_URL} > /dev/null;
   fi
 }
 
-if [ ! -f "$FILE" ]; then
+write_health()
+{
+    local status="$1"
+    if [ $status -eq 0 ]; then
+      echo "HEALTHY" >> HEALTH_FILE
+    else
+      echo "DOH!" >> HEALTH_FILE
+    fi
+}
+
+if [ ! -f "$LOCK_FILE" ]; then
    echo "Starting Sync"
    aquire_lock
    "$VIRTUAL_ENV/bin/python3" main.py
@@ -28,7 +39,8 @@ if [ ! -f "$FILE" ]; then
    release_lock
    echo "Finished Sync"
    do_healthcheck $STATUS_CODE
+   write_health $STATUS_CODE
    exit $STATUS_CODE
 else
-   echo "Lock-file present $FILE, try increasing time between runs, next schedule will be ${CRON:-never, no cron set}"
+   echo "Lock-file present $LOCK_FILE, try increasing time between runs, next schedule will be ${CRON:-never, no cron set}"
 fi
