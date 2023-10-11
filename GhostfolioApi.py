@@ -327,6 +327,8 @@ class GhostfolioApi:
         # TODO create a way to lookup stuff
         if isin == 'DE000A3MQQ17':
             return SymbolLookupOverride(True, DATA_SOURCE_YAHOO, 'FRE.DE', 'EUR')
+        if isin == 'NL0015001L59':
+            return SymbolLookupOverride(True, DATA_SOURCE_YAHOO, 'SHEL.L', 'GBp')
         return SymbolLookupOverride(False, None, None, None)
 
     def __get_ibkr_platform_id(self):
