@@ -11,13 +11,13 @@ ENV FILE_WRITE_LOCATION=$HOME/out
 ENV TZ=Europe/Bern
 
 # Supercronic stuff
-ENV SUPERCRONIC_VERSION="v0.2.24"
-ENV SUPERCRONIC_SHA1SUM=6817299e04457e5d6ec4809c72ee13a43e95ba41
-
+ENV SUPERCRONIC_VERSION="v0.2.26"
+ENV SUPERCRONIC_SHA1SUM=7a79496cf8ad899b99a719355d4db27422396735
 ENV SUPERCRONIC=supercronic-linux-amd64
 ENV SUPERCRONIC_PACKAGE=supercronic-linux-amd64
 ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/$SUPERCRONIC_VERSION/$SUPERCRONIC_PACKAGE
 
+# dump-init stuff
 ENV DUMP_INIT_VERSION="1.2.5"
 ADD https://github.com/Yelp/dumb-init/releases/download/v$DUMP_INIT_VERSION/dumb-init_${DUMP_INIT_VERSION}_x86_64 /bin/dumb-init
 
