@@ -17,7 +17,7 @@ do_healthcheck()
 {
   local status="$1"
   if ([ -n "$HEALTHCHECK_URL" ] && [ $status -eq 0 ]); then
-    wget ${HEALTHCHECK_URL} > /dev/null;
+    wget ${HEALTHCHECK_URL} -O /dev/null;
   fi
 }
 
@@ -25,9 +25,9 @@ write_health()
 {
     local status="$1"
     if [ $status -eq 0 ]; then
-      echo "HEALTHY" >> HEALTH_FILE
+      echo "HEALTHY" > HEALTH_FILE
     else
-      echo "DOH!" >> HEALTH_FILE
+      echo "DOH!" > HEALTH_FILE
     fi
 }
 
