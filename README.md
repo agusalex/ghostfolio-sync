@@ -15,14 +15,21 @@ Follow this guide to configure your Flex Queries in your Interactive Brokers acc
 
 https://help.wealthica.com/help/how-to-connect-ib-interactive-brokers-and-configure-the-flex-report
 
-When you configure your Flex Query give it, cash statement permissions as well as transaction permisions.
+When you configure your Flex Query give it: **Cash report** and **Cash transactions**, leaving all options disabled for both.
 
 **Important: If you dont want ghostfolio-sync to sync everything everytime and make it quicker, just set a shorter window for the query. Keep in mind that what was not synced by ghostfolio-sync in that period of time will be lost (ie when the window moves and content was not uploaded to ghostfolio). This can be avoided at the cost of a longer window of time and longer sync**
 
 ### Ghostfolio
-* Create an account using anonymous option save your **KEY**.
-* Go to this link (if using online ghostfolio use https://ghostfol.io) https://**GHOST_HOST**/api/v1/auth/anonymous/**KEY**
-* Take note of your **GHOST_TOKEN**
+* Take note of your user **KEY** (generated upon user creation and used to login to Ghostfolio)
+* Run the following on the terminal (replace `ghostfol.io` with `localhost` or your host url if you are self-hosting):
+
+```
+curl -X POST -H "Content-Type: application/json" \
+	-d '{ "accessToken": "YOUR-USER-KEY-GOES-HERE }' \    
+	https://ghostfol.io/api/v1/auth/anonymous
+```
+
+* Take note of the token `{"authToken":"12cd45...`. That is your **GHOST_TOKEN**
 
 ## Run in Docker
 
