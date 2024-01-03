@@ -21,7 +21,7 @@ When you configure your Flex Query give it, cash statement permissions as well a
 ### Ghostfolio
 1. Create an account using anonymous option save your **KEY**.
 2. Get the **GHOST_TOKEN** for self-hosted `curl -X POST \
-   http://192.168.3.1:3333/api/v1/auth/anonymous \
+   http://ghostfolio:3333/api/v1/auth/anonymous \
    -H 'Content-Type: application/json' \
    -d '{"accessToken":"REPLACE_WITH_YOUR_KEY"}'`
 3. Take note of your **GHOST_TOKEN**
