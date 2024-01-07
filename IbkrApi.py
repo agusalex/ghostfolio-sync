@@ -47,18 +47,19 @@ class IbkrApi:
     def get_stock_transactions(query: FlexQueryResponse) -> list[Trade]:
         skipped_categories_counter = {}
         trades: list[Trade] = []
-        for trade in query.FlexStatements[0].Trades:
-            if trade.assetCategory is not trade.assetCategory.STOCK:
-                logger.debug(f"ignore {trade.assetCategory}, {trade.symbol}: {trade}")
-                existing_skips = skipped_categories_counter.get(trade.assetCategory, 0)
-                skipped_categories_counter[trade.assetCategory] = existing_skips + 1
-                continue
+        for flexStatement in query.FlexStatements:
+            for trade in flexStatement.Trades:
+                if trade.assetCategory is not trade.assetCategory.STOCK:
+                    logger.debug(f"ignore {trade.assetCategory}, {trade.symbol}: {trade}")
+                    existing_skips = skipped_categories_counter.get(trade.assetCategory, 0)
+                    skipped_categories_counter[trade.assetCategory] = existing_skips + 1
+                    continue
 
-            if trade.openCloseIndicator is None:
-                logger.warning("trade is not open or close (ignoring): %s", trade)
-                continue
+                if trade.openCloseIndicator is None:
+                    logger.warning("trade is not open or close (ignoring): %s", trade)
+                    continue
 
-            trades.append(trade)
+                trades.append(trade)
 
         if len(skipped_categories_counter) > 0:
             logger.info(f"Skipped: {skipped_categories_counter}")
@@ -70,10 +71,12 @@ class IbkrApi:
         cash_action_types: list[CashAction] = [CashAction.DIVIDEND,
                                                CashAction.PAYMENTINLIEU,
                                                CashAction.WHTAX]
-
+        all_cash_transactions = []
+        for flex_statements in query.FlexStatements:
+            all_cash_transactions.extend(flex_statements.CashTransactions)
         transaction_summaries = filter(
             lambda x: x.levelOfDetail == 'SUMMARY' and (x.type in cash_action_types),
-            query.FlexStatements[0].CashTransactions
+            all_cash_transactions
         )
         return sorted(transaction_summaries, key=lambda t: t.reportDate)
 

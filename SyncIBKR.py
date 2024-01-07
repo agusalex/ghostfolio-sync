@@ -17,14 +17,15 @@ logger = LoggerFactory.logger
 
 def get_cash_amount_from_flex(query):
     cash = 0
-    try:
-        cash += query.FlexStatements[0].CashReport[0].endingCash
-    except Exception as e:
-        logger.info(e)
-    try:
-        cash += query.FlexStatements[0].CashReport[0].endingCashPaxos
-    except Exception as e:
-        logger.info(e)
+    for flex_statement in query.FlexStatements:
+        try:
+            cash += flex_statement.CashReport[0].endingCash
+        except Exception as e:
+            logger.info(e)
+        try:
+            cash += flex_statement.CashReport[0].endingCashPaxos
+        except Exception as e:
+            logger.info(e)
     return cash
 
 
