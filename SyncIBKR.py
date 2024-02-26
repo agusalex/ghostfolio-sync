@@ -57,8 +57,11 @@ def get_diff(old_acts, new_acts):
 class SyncIBKR:
     IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
 
-    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token, ghost_currency):
-        self.ghost_token = ghost_token
+    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
+        if ghost_token == "" and ghost_key != "":
+            self.ghost_token = self.create_ghost_token()
+        else:
+            self.ghost_token = ghost_token
         self.ghost_host = ghost_host
         self.ghost_currency = ghost_currency
         self.ibkrtoken = ibkrtoken
@@ -113,6 +116,28 @@ class SyncIBKR:
             print("Nothing new to sync")
         else:
             self.import_act(diff)
+            
+    def create_ghost_token(self):
+        print("No bearer token provided, fetching one")
+        token = {
+            'accessToken': self.ghost_key
+        }
+
+        url = f"{self.ghost_host}/api/v1/auth/anonymous"
+
+        payload = json.dumps(token)
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+        except Exception as e:
+            print(e)
+            return ""
+        if response.status_code == 201:
+            return response.json()["authToken"]
+        print("Failed fetching bearer token")
+        return ""
 
     def set_cash_to_account(self, account_id, cash):
         if cash == 0:
