@@ -60,6 +60,7 @@ class SyncIBKR:
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
         if ghost_token == "" and ghost_key != "":
             self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
+            print(self.ghost_token)
         else:
             self.ghost_token = ghost_token
         self.ghost_host = ghost_host
@@ -135,6 +136,7 @@ class SyncIBKR:
             print(e)
             return ""
         if response.status_code == 201:
+            print("Bearer token fetched")
             return response.json()["authToken"]
         print("Failed fetching bearer token")
         return ""
@@ -231,6 +233,7 @@ class SyncIBKR:
         return response.status_code == 201
 
     def create_ibkr_account(self):
+        print("Creating IBKR account")
         account = {
             "accountType": "SECURITIES",
             "balance": 0,
@@ -253,11 +256,13 @@ class SyncIBKR:
             print(e)
             return ""
         if response.status_code == 201:
+            print("IBKR account: ", response.json()["id"])
             return response.json()["id"]
         print("Failed creating ")
         return ""
 
     def get_account(self):
+        print("Finding IBKR account")
         url = f"{self.ghost_host}/api/v1/account"
 
         payload = {}
@@ -278,6 +283,7 @@ class SyncIBKR:
         accounts = self.get_account()
         for account in accounts:
             if account["name"] == "IBKR":
+                print("IBKR account: ", account["id"])
                 return account["id"]
         return self.create_ibkr_account()
 
