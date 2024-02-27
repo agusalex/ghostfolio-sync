@@ -59,7 +59,7 @@ class SyncIBKR:
 
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
         if ghost_token == "" and ghost_key != "":
-            self.ghost_token = self.create_ghost_token()
+            self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
         else:
             self.ghost_token = ghost_token
         self.ghost_host = ghost_host
@@ -117,13 +117,13 @@ class SyncIBKR:
         else:
             self.import_act(diff)
             
-    def create_ghost_token(self):
+    def create_ghost_token(self, ghost_host, ghost_key):
         print("No bearer token provided, fetching one")
         token = {
-            'accessToken': self.ghost_key
+            'accessToken': ghost_key
         }
 
-        url = f"{self.ghost_host}/api/v1/auth/anonymous"
+        url = f"{ghost_host}/api/v1/auth/anonymous"
 
         payload = json.dumps(token)
         headers = {
