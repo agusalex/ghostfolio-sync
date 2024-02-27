@@ -7,8 +7,8 @@ DELETEALL = "DELETEALL"
 
 GETALLACTS = "GETALLACTS"
 
-ghost_keys = os.environ.get('GHOST_KEY').split(",")
-ghost_tokens = os.environ.get('GHOST_TOKEN').split(",")
+ghost_keys = os.environ.get("GHOST_KEY", "").split(",")
+ghost_tokens = os.environ.get('GHOST_TOKEN', "").split(",")
 ibkr_tokens = os.environ.get("IBKR_TOKEN").split(",")
 ibkr_queries = os.environ.get("IBKR_QUERY").split(",")
 ghost_hosts = os.environ.get("GHOST_HOST", "https://ghostfol.io").split(",")
