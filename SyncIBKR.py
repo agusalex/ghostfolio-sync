@@ -7,15 +7,12 @@ import json
 
 
 def get_cash_amount_from_flex(query):
+    print("Getting cash amount")
     cash = 0
     try:
         cash += query.FlexStatements[0].CashReport[0].endingCash
     except Exception as e:
-        print(e)
-    try:
-        cash += query.FlexStatements[0].CashReport[0].endingCashPaxos
-    except Exception as e:
-        print(e)
+        print(e)    
     return cash
 
 
@@ -55,12 +52,11 @@ def get_diff(old_acts, new_acts):
 
 
 class SyncIBKR:
-    IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
+    IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
 
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
         if ghost_token == "" and ghost_key != "":
             self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
-            print(self.ghost_token)
         else:
             self.ghost_token = ghost_token
         self.ghost_host = ghost_host
@@ -144,11 +140,10 @@ class SyncIBKR:
         return ""
 
     def set_cash_to_account(self, account_id, cash):
-        if cash == 0:
+        if cash <= 1:
             print("No cash set, no cash retrieved")
             return False
         account = {
-            "accountType": "SECURITIES",
             "balance": float(cash),
             "id": account_id,
             "currency": self.ghost_currency,
@@ -237,12 +232,11 @@ class SyncIBKR:
     def create_ibkr_account(self):
         print("Creating IBKR account")
         account = {
-            "accountType": "SECURITIES",
             "balance": 0,
             "currency": self.ghost_currency,
             "isExcluded": False,
             "name": "IBKR",
-            "platformId": "9da3a8a7-4795-43e3-a6db-ccb914189737"
+            "platformId": self.IBKRCATEGORY
         }
 
         url = f"{self.ghost_host}/api/v1/account"
@@ -258,7 +252,7 @@ class SyncIBKR:
             print(e)
             return ""
         if response.status_code == 201:
-            print("IBKR account: ", response.json()["id"])
+            print("IBKR account: " + response.json()["id"])
             return response.json()["id"]
         print("Failed creating ")
         return ""
