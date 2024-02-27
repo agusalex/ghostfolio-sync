@@ -91,6 +91,8 @@ class SyncIBKR:
                     symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
                 elif "VUAA" in trade.symbol:
                     symbol = trade.symbol + ".L"
+                elif "V80A" in trade.symbol:
+                    symbol = "VNGA80.MI"
                 if trade.buySell == BuySell.BUY:
                     buysell = "BUY"
                 elif trade.buySell == BuySell.SELL:
