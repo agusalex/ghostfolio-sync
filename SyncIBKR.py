@@ -52,6 +52,7 @@ def get_diff(old_acts, new_acts):
 
 
 class SyncIBKR:
+    IBKRNAME = "Interactive Brokers"
     IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
 
     def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
@@ -103,7 +104,7 @@ class SyncIBKR:
                     "currency": trade.currency,
                     "dataSource": "YAHOO",
                     "date": iso_format,
-                    "fee": float(0),
+                    "fee": abs(float(self.get_fee_for_trade(trade.tradeID,query.FlexStatements[0].UnbundledCommissionDetails))),
                     "quantity": abs(float(trade.quantity)),
                     "symbol": symbol.replace(" ", "-"),
                     "type": buysell,
@@ -116,6 +117,12 @@ class SyncIBKR:
         else:
             self.import_act(diff)
             
+    def get_fee_for_trade(self, trade_id, commission_details):
+        for commission_detail in commission_details:
+            if commission_detail.tradeID == trade_id:
+                return commission_detail.totalCommission
+        return 0
+
     def create_ghost_token(self, ghost_host, ghost_key):
         print("No bearer token provided, fetching one")
         token = {
@@ -148,7 +155,7 @@ class SyncIBKR:
             "id": account_id,
             "currency": self.ghost_currency,
             "isExcluded": False,
-            "name": "IBKR",
+            "name": self.IBKRNAME,
             "platformId": self.IBKRCATEGORY
         }
 
@@ -235,7 +242,7 @@ class SyncIBKR:
             "balance": 0,
             "currency": self.ghost_currency,
             "isExcluded": False,
-            "name": "IBKR",
+            "name": self.IBKRNAME,
             "platformId": self.IBKRCATEGORY
         }
 
@@ -278,7 +285,7 @@ class SyncIBKR:
     def create_or_get_IBKR_accountId(self):
         accounts = self.get_account()
         for account in accounts:
-            if account["name"] == "IBKR":
+            if account["name"] == self.IBKRNAME:
                 print("IBKR account: ", account["id"])
                 return account["id"]
         return self.create_ibkr_account()
