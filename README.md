@@ -42,8 +42,9 @@ curl -X POST -H "Content-Type: application/json" \
 |**IBKR_TOKEN**  | Your Token  |
 |**IBKR_QUERY**  | Your Query ID |
 |**GHOST_TOKEN**  | The token for your ghostfolio account |
+|**GHOST_KEY**  | The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
-|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if account doesn't exist |
+|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
