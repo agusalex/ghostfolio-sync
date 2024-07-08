@@ -7,15 +7,12 @@ import json
 
 
 def get_cash_amount_from_flex(query):
+    print("Getting cash amount")
     cash = 0
     try:
         cash += query.FlexStatements[0].CashReport[0].endingCash
     except Exception as e:
-        print(e)
-    try:
-        cash += query.FlexStatements[0].CashReport[0].endingCashPaxos
-    except Exception as e:
-        print(e)
+        print(e)    
     return cash
 
 
@@ -55,10 +52,14 @@ def get_diff(old_acts, new_acts):
 
 
 class SyncIBKR:
-    IBKRCATEGORY = "9da3a8a7-4795-43e3-a6db-ccb914189737"
+    IBKRNAME = "Interactive Brokers"
+    IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
 
-    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_token, ghost_currency):
-        self.ghost_token = ghost_token
+    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
+        if ghost_token == "" and ghost_key != "":
+            self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
+        else:
+            self.ghost_token = ghost_token
         self.ghost_host = ghost_host
         self.ghost_currency = ghost_currency
         self.ibkrtoken = ibkrtoken
@@ -87,6 +88,8 @@ class SyncIBKR:
                     symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
                 elif "VUAA" in trade.symbol:
                     symbol = trade.symbol + ".L"
+                elif "V80A" in trade.symbol:
+                    symbol = "VNGA80.MI"
                 if trade.buySell == BuySell.BUY:
                     buysell = "BUY"
                 elif trade.buySell == BuySell.SELL:
@@ -101,7 +104,7 @@ class SyncIBKR:
                     "currency": trade.currency,
                     "dataSource": "YAHOO",
                     "date": iso_format,
-                    "fee": float(0),
+                    "fee": abs(float(self.get_fee_for_trade(trade.tradeID,query.FlexStatements[0].UnbundledCommissionDetails))),
                     "quantity": abs(float(trade.quantity)),
                     "symbol": symbol.replace(" ", "-"),
                     "type": buysell,
@@ -113,18 +116,46 @@ class SyncIBKR:
             print("Nothing new to sync")
         else:
             self.import_act(diff)
+            
+    def get_fee_for_trade(self, trade_id, commission_details):
+        for commission_detail in commission_details:
+            if commission_detail.tradeID == trade_id:
+                return commission_detail.totalCommission
+        return 0
+
+    def create_ghost_token(self, ghost_host, ghost_key):
+        print("No bearer token provided, fetching one")
+        token = {
+            'accessToken': ghost_key
+        }
+
+        url = f"{ghost_host}/api/v1/auth/anonymous"
+
+        payload = json.dumps(token)
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+        except Exception as e:
+            print(e)
+            return ""
+        if response.status_code == 201:
+            print("Bearer token fetched")
+            return response.json()["authToken"]
+        print("Failed fetching bearer token")
+        return ""
 
     def set_cash_to_account(self, account_id, cash):
-        if cash == 0:
+        if cash <= 1:
             print("No cash set, no cash retrieved")
             return False
         account = {
-            "accountType": "SECURITIES",
             "balance": float(cash),
             "id": account_id,
             "currency": self.ghost_currency,
             "isExcluded": False,
-            "name": "IBKR",
+            "name": self.IBKRNAME,
             "platformId": self.IBKRCATEGORY
         }
 
@@ -206,13 +237,13 @@ class SyncIBKR:
         return response.status_code == 201
 
     def create_ibkr_account(self):
+        print("Creating IBKR account")
         account = {
-            "accountType": "SECURITIES",
             "balance": 0,
             "currency": self.ghost_currency,
             "isExcluded": False,
-            "name": "IBKR",
-            "platformId": "9da3a8a7-4795-43e3-a6db-ccb914189737"
+            "name": self.IBKRNAME,
+            "platformId": self.IBKRCATEGORY
         }
 
         url = f"{self.ghost_host}/api/v1/account"
@@ -228,11 +259,13 @@ class SyncIBKR:
             print(e)
             return ""
         if response.status_code == 201:
+            print("IBKR account: " + response.json()["id"])
             return response.json()["id"]
         print("Failed creating ")
         return ""
 
     def get_account(self):
+        print("Finding IBKR account")
         url = f"{self.ghost_host}/api/v1/account"
 
         payload = {}
@@ -252,7 +285,8 @@ class SyncIBKR:
     def create_or_get_IBKR_accountId(self):
         accounts = self.get_account()
         for account in accounts:
-            if account["name"] == "IBKR":
+            if account["name"] == self.IBKRNAME:
+                print("IBKR account: ", account["id"])
                 return account["id"]
         return self.create_ibkr_account()
 
