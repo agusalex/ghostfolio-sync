@@ -48,6 +48,19 @@ curl -X POST -H "Content-Type: application/json" \
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
+### Configuring / Retrieving Platform ID
+
+If you are using ghostfolio self-hosted option, you need to go into Ghostfolio and add a platform for IBKR.
+
+Then do a request to `/account` to find the relevant platform ID and store it in the GHOST_IBKR_PLATFORM env variable
+
+```bash
+curl "http://10.0.0.2:3333/api/v1/account" \
+     -H "Authorization: Bearer $GHOST_TOKEN"
+
+export GHOST_IBKR_PLATFORM=<PUT PLATFORM ID HERE>
+```
+
 ## Contributing
 
 * Feel free to submit any issue or PR's you think necessary
