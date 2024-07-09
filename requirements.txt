@@ -2,3 +2,4 @@ git+https://github.com/trefex/ibflex
 requests==2.28.2
 urllib3==1.26.14
 requests
+pyyaml
