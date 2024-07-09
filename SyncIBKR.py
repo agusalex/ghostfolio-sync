@@ -68,7 +68,7 @@ class SyncIBKR:
         self.ibkrplatform = ghost_ibkr_platform
 
         # Load the configuration file
-        with open('mapping_file.yaml', 'r') as file:
+        with open(mapping_file, 'r') as file:
             config = yaml.safe_load(file)
 
         # Extract the symbol mapping from the configuration
