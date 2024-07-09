@@ -3,4 +3,9 @@ symbol_mapping:
   VUAA: VUAA.L
   V80A: VNGA80.MI
   .USD-PAXOS: USD
+  CSPX: SXR8.DE
+  MEUD: MEUD.PA
+  EGLN: EGLN.L
+  IWDA: IWDA.AS
+  VWCE: VWCE.DE
   # Add more mappings here as needed
