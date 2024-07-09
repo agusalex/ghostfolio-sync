@@ -1,0 +1,6 @@
+# mapping.yaml
+symbol_mapping:
+  VUAA: VUAA.L
+  V80A: VNGA80.MI
+  .USD-PAXOS: USD
+  # Add more mappings here as needed
