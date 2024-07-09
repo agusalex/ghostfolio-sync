@@ -10,7 +10,7 @@ RUN pip3 install -r requirements.txt
 RUN apk add dumb-init
 COPY ./entrypoint.sh /root/entrypoint.sh
 COPY ./run.sh /root/run.sh
-RUN chmod 777 /root/entrypoint.sh /root/run.sh /bin/dumb-init
+RUN chmod 777 /root/entrypoint.sh /root/run.sh
 COPY main.py .
 COPY SyncIBKR.py .
 ENTRYPOINT ["dumb-init", "--"]
