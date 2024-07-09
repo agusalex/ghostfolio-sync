@@ -53,9 +53,9 @@ def get_diff(old_acts, new_acts):
 
 class SyncIBKR:
     IBKRNAME = "Interactive Brokers"
-    IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
+    #IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
 
-    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency):
+    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency, ghost_ibkr_platform):
         if ghost_token == "" and ghost_key != "":
             self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
         else:
@@ -64,6 +64,7 @@ class SyncIBKR:
         self.ghost_currency = ghost_currency
         self.ibkrtoken = ibkrtoken
         self.ibkrquery = ibkrquery
+        self.ibkrplatform = ghost_ibkr_platform
 
     def sync_ibkr(self):
         print("Fetching Query")
@@ -156,7 +157,7 @@ class SyncIBKR:
             "currency": self.ghost_currency,
             "isExcluded": False,
             "name": self.IBKRNAME,
-            "platformId": self.IBKRCATEGORY
+            "platformId": self.ibkrplatform
         }
 
         url = f"{self.ghost_host}/api/v1/account/{account_id}"
@@ -243,7 +244,7 @@ class SyncIBKR:
             "currency": self.ghost_currency,
             "isExcluded": False,
             "name": self.IBKRNAME,
-            "platformId": self.IBKRCATEGORY
+            "platformId": self.ibkrplatform
         }
 
         url = f"{self.ghost_host}/api/v1/account"
