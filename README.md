@@ -36,6 +36,14 @@ curl -X POST -H "Content-Type: application/json" \
 
 ```docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY agusalex/ghostfolio-sync```
 
+In Podman
+
+```podman run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=$IBKR_TOKEN -e IBKR_QUERY=$IBKR_QUERY -e GHOST_HOST=http://$GHOST_URL -e GHOST_CURRENCY=EUR -e GHOST_IBKR_PLATFORM=$IBKR_PLATFORM -v ./mapping.yaml:/usr/app/src/mapping.yaml:Z agusalex/ghostfolio-sync```
+
+### Symbol mapping
+
+You can specify the symbol mappings in `mapping.yaml` and you do not need to rebuild the container with the above mount command.
+
 ### More Options
 | Envs |Description  |
 |--|--|
@@ -45,6 +53,7 @@ curl -X POST -H "Content-Type: application/json" \
 |**GHOST_KEY**  | The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
 |**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
 |**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
+|**GHOST_IBKR_PLATFORM** | (optional) For self-hosted, specify the Platform ID |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
@@ -52,13 +61,13 @@ curl -X POST -H "Content-Type: application/json" \
 
 If you are using ghostfolio self-hosted option, you need to go into Ghostfolio and add a platform for IBKR.
 
-Then do a request to `/account` to find the relevant platform ID and store it in the GHOST_IBKR_PLATFORM env variable
+Then make a request to `/account` to find the relevant platform ID and store it in the IBKR_PLATFORM env variable
 
 ```bash
 curl "http://10.0.0.2:3333/api/v1/account" \
      -H "Authorization: Bearer $GHOST_TOKEN"
 
-export GHOST_IBKR_PLATFORM=<PUT PLATFORM ID HERE>
+export IBKR_PLATFORM=<PUT PLATFORM ID HERE>
 ```
 
 ## Contributing

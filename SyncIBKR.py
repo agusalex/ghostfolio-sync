@@ -4,6 +4,7 @@ import requests
 from ibflex import client, parser, FlexQueryResponse, BuySell
 from datetime import datetime
 import json
+import yaml
 
 
 def get_cash_amount_from_flex(query):
@@ -55,7 +56,7 @@ class SyncIBKR:
     IBKRNAME = "Interactive Brokers"
     #IBKRCATEGORY = "66b22c82-a96c-4e4f-aaf2-64b4ca41dda2"
 
-    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency, ghost_ibkr_platform):
+    def __init__(self, ghost_host, ibkrtoken, ibkrquery, ghost_key, ghost_token, ghost_currency, ghost_ibkr_platform, mapping_file='mapping.yaml'):
         if ghost_token == "" and ghost_key != "":
             self.ghost_token = self.create_ghost_token(ghost_host, ghost_key)
         else:
@@ -65,6 +66,13 @@ class SyncIBKR:
         self.ibkrtoken = ibkrtoken
         self.ibkrquery = ibkrquery
         self.ibkrplatform = ghost_ibkr_platform
+
+        # Load the configuration file
+        with open(mapping_file, 'r') as file:
+            config = yaml.safe_load(file)
+
+        # Extract the symbol mapping from the configuration
+        self.symbol_mapping = config.get('symbol_mapping', {})
 
     def sync_ibkr(self):
         print("Fetching Query")
@@ -85,12 +93,11 @@ class SyncIBKR:
                 date = datetime.strptime(str(trade.tradeDate), date_format)
                 iso_format = date.isoformat()
                 symbol = trade.symbol
-                if ".USD-PAXOS" in trade.symbol:
-                    symbol = trade.symbol.replace(".USD-PAXOS", "") + "USD"
-                elif "VUAA" in trade.symbol:
-                    symbol = trade.symbol + ".L"
-                elif "V80A" in trade.symbol:
-                    symbol = "VNGA80.MI"
+                if symbol in self.symbol_mapping:
+                    symbol = self.symbol_mapping[symbol]
+                    print(f"Transformed symbol: {symbol}")
+                else:
+                    print(f"Symbol {trade.symbol} not found in mapping.")
                 if trade.buySell == BuySell.BUY:
                     buysell = "BUY"
                 elif trade.buySell == BuySell.SELL:
