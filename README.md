@@ -42,7 +42,7 @@ In Podman
 
 ### Symbol mapping
 
-You can specify the symbol mappings in `mapping.yaml` and you do not need to re-build the container with the above mount command.
+You can specify the symbol mappings in `mapping.yaml` and you do not need to rebuild the container with the above mount command.
 
 ### More Options
 | Envs |Description  |
@@ -61,7 +61,7 @@ You can specify the symbol mappings in `mapping.yaml` and you do not need to re-
 
 If you are using ghostfolio self-hosted option, you need to go into Ghostfolio and add a platform for IBKR.
 
-Then do a request to `/account` to find the relevant platform ID and store it in the IBKR_PLATFORM env variable
+Then make a request to `/account` to find the relevant platform ID and store it in the IBKR_PLATFORM env variable
 
 ```bash
 curl "http://10.0.0.2:3333/api/v1/account" \
