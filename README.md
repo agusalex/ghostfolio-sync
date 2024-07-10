@@ -38,7 +38,7 @@ curl -X POST -H "Content-Type: application/json" \
 
 In Podman
 
-```podman run -e GHOST_KEY=$GHOST_KEY -e IBKR_TOKEN=$IBKR_TOKEN -e IBKR_QUERY=$IBKR_QUERY -e GHOST_HOST=http://$GHOST_URL -e GHOST_CURRENCY=EUR -e GHOST_IBKR_PLATFORM=$IBKR_PLATFORM -v ./mapping.yaml:/usr/app/src/mapping.yaml:Z agusalex/ghostfolio-sync```
+```podman run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=$IBKR_TOKEN -e IBKR_QUERY=$IBKR_QUERY -e GHOST_HOST=http://$GHOST_URL -e GHOST_CURRENCY=EUR -e GHOST_IBKR_PLATFORM=$IBKR_PLATFORM -v ./mapping.yaml:/usr/app/src/mapping.yaml:Z agusalex/ghostfolio-sync```
 
 ### Symbol mapping
 
