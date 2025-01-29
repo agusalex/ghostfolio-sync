@@ -49,7 +49,7 @@ You can specify the symbol mappings in `mapping.yaml` and you do not need to reb
 ### More Options
 | Envs | Mutiple ( Comma-separated ) | Description  |
 |--|--|--|
-|**IBKR_ACCOUNT_ID**  |Yes| Your IBKR Account ID  |
+|**IBKR_ACCOUNT_ID**  |Yes| Your IBKR Account ID (Example: U7649433) |
 |**IBKR_TOKEN**   |Yes| Your Token  |
 |**IBKR_QUERY**   |Yes| Your Query ID |
 |**GHOST_TOKEN**   |Yes| The token for your ghostfolio account |
