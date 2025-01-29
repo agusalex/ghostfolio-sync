@@ -37,30 +37,30 @@ curl -X POST -H "Content-Type: application/json" \
 
 ## Run in Docker
 
-```docker run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY agusalex/ghostfolio-sync```
+```docker run -e IBKR_ACCOUNT_ID=$IBKR_ACCOUNT_ID -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=YOUR-IBKR-TOKEN -e IBKR_QUERY=YOUR-IBKR-QUERY agusalex/ghostfolio-sync```
 
 In Podman
 
-```podman run -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=$IBKR_TOKEN -e IBKR_QUERY=$IBKR_QUERY -e GHOST_HOST=http://$GHOST_URL -e GHOST_CURRENCY=EUR -e GHOST_IBKR_PLATFORM=$IBKR_PLATFORM -v ./mapping.yaml:/usr/app/src/mapping.yaml:Z agusalex/ghostfolio-sync```
+```podman run -e IBKR_ACCOUNT_ID=$IBKR_ACCOUNT_ID -e GHOST_TOKEN=YOUR_GHOST_TOKEN -e IBKR_TOKEN=$IBKR_TOKEN -e IBKR_QUERY=$IBKR_QUERY -e GHOST_HOST=http://$GHOST_URL -e GHOST_CURRENCY=EUR -e GHOST_IBKR_PLATFORM=$IBKR_PLATFORM -v ./mapping.yaml:/usr/app/src/mapping.yaml:Z agusalex/ghostfolio-sync```
 
 ### Symbol mapping
 
 You can specify the symbol mappings in `mapping.yaml` and you do not need to rebuild the container with the above mount command.
 
 
-### More Options (Some of them have /S indicating you can have multiple comma-separated)
-| Envs |Description  |
-|--|--|
-|**IBKR_ACCOUNT_ID/S**  | Your IBKR Account ID  |
-|**IBKR_TOKEN/S**  | Your Token  |
-|**IBKR_QUERY/S**  | Your Query ID |
-|**GHOST_TOKEN/S**  | The token for your ghostfolio account |
-|**GHOST_KEY/S**  | The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
-|**GHOST_HOST/S**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
-|**GHOST_CURRENCY/S**  | (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
-|**GHOST_IBKR_PLATFORM/S** | (optional) For self-hosted, specify the Platform ID |
-|**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
-|**OPERATION/S** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
+### More Options
+| Envs | Mutiple ( Comma-separated ) | Description  |
+|--|--|--|
+|**IBKR_ACCOUNT_ID**  |Yes| Your IBKR Account ID  |
+|**IBKR_TOKEN**   |Yes| Your Token  |
+|**IBKR_QUERY**   |Yes| Your Query ID |
+|**GHOST_TOKEN**   |Yes| The token for your ghostfolio account |
+|**GHOST_KEY**   |Yes| The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
+|**GHOST_HOST**   |Yes| (optional) Ghostfolio Host, only add if using custom ghostfolio |
+|**GHOST_CURRENCY**   |Yes| (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
+|**GHOST_IBKR_PLATFORM**  |Yes| (optional) For self-hosted, specify the Platform ID |
+|**CRON**  |Yes| (optional) To run on a [Cron Schedule](https://crontab.guru/) |
+|**OPERATION**  |Yes| (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
 ### Configuring / Retrieving Platform ID
 
