@@ -11,7 +11,10 @@ Sync your Ghostfolio with IBKR
 ## Setup
 
 ### IBKR
-**Important**:  When you configure your Flex Query give it: **Cash report** and **Cash transactions** and **Trades** and nothing else
+**Important**:  When you configure your Flex Query give it:
+* Account Information: Currency
+* Cash Report: Currency, Ending Cash
+* Trades: Select All (however there is a risk new IBKR fields will cause issues)
 
 Follow this guide to configure your Flex Queries in your Interactive Brokers account:
 https://help.wealthica.com/help/how-to-connect-ib-interactive-brokers-and-configure-the-flex-report
