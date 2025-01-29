@@ -17,9 +17,7 @@ Sync your Ghostfolio with IBKR
 * Trades: Select All (however there is a risk new IBKR fields will cause issues)
 
 Follow this guide to configure your Flex Queries in your Interactive Brokers account:
-https://help.wealthica.com/help/how-to-connect-ib-interactive-brokers-and-configure-the-flex-report
-
-
+[https://portfellow.com/how-to-configure-ib-import](https://portfellow.com/how-to-configure-ib-import)
 
 **Important: If you dont want ghostfolio-sync to sync everything everytime and make it quicker, just set a shorter window for the query. Keep in mind that what was not synced by ghostfolio-sync in that period of time will be lost (ie when the window moves and content was not uploaded to ghostfolio). This can be avoided at the cost of a longer window of time and longer sync**
 
