@@ -57,7 +57,7 @@ You can specify the symbol mappings in `mapping.yaml` and you do not need to reb
 |**GHOST_HOST**   |Yes| (optional) Ghostfolio Host, only add if using custom ghostfolio |
 |**GHOST_CURRENCY**   |Yes| (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
 |**GHOST_IBKR_PLATFORM**  |Yes| (optional) For self-hosted, specify the Platform ID |
-|**CRON**  |Yes| (optional) To run on a [Cron Schedule](https://crontab.guru/) |
+|**CRON**  |No| (optional) To run on a [Cron Schedule](https://crontab.guru/) |
 |**OPERATION**  |Yes| (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
 ### Configuring / Retrieving Platform ID
