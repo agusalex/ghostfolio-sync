@@ -8,6 +8,7 @@
 Sync your Ghostfolio with IBKR 
 ( more to come? Help is always welcome! )
 
+
 ## Setup
 
 ### IBKR
