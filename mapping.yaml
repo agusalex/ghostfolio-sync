@@ -8,4 +8,5 @@ symbol_mapping:
   EGLN: EGLN.L
   IWDA: IWDA.AS
   VWCE: VWCE.DE
+  ASML: ASML.AS
   # Add more mappings here as needed
