@@ -47,18 +47,20 @@ In Podman
 
 You can specify the symbol mappings in `mapping.yaml` and you do not need to rebuild the container with the above mount command.
 
-### More Options
+
+### More Options (Some of them have /S indicating you can have multiple comma-separated)
 | Envs |Description  |
 |--|--|
-|**IBKR_TOKEN**  | Your Token  |
-|**IBKR_QUERY**  | Your Query ID |
-|**GHOST_TOKEN**  | The token for your ghostfolio account |
-|**GHOST_KEY**  | The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
-|**GHOST_HOST**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
-|**GHOST_CURRENCY**  | (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
-|**GHOST_IBKR_PLATFORM** | (optional) For self-hosted, specify the Platform ID |
+|**IBKR_ACCOUNT_ID/S**  | Your IBKR Account ID  |
+|**IBKR_TOKEN/S**  | Your Token  |
+|**IBKR_QUERY/S**  | Your Query ID |
+|**GHOST_TOKEN/S**  | The token for your ghostfolio account |
+|**GHOST_KEY/S**  | The key for your ghostfolio account, if this is used you don't need **GHOST_TOKEN** and vice-versa |
+|**GHOST_HOST/S**  | (optional) Ghostfolio Host, only add if using custom ghostfolio |
+|**GHOST_CURRENCY/S**  | (optional) Ghostfolio Account Currency, only applied if the account doesn't exist |
+|**GHOST_IBKR_PLATFORM/S** | (optional) For self-hosted, specify the Platform ID |
 |**CRON**  | (optional) To run on a [Cron Schedule](https://crontab.guru/) |
-|**OPERATION** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
+|**OPERATION/S** | (optional) SYNCIBKR (default) or DELETEALL (will erase all operations of all accounts) |
 
 ### Configuring / Retrieving Platform ID
 
