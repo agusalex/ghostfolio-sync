@@ -1,5 +1,6 @@
 git+https://github.com/agusalex/ibflex
 requests==2.32.0
 urllib3==2.2.2
+prettyprint
 requests
 pyyaml
