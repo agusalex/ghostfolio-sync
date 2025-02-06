@@ -13,5 +13,6 @@ RUN chmod 777 /root/entrypoint.sh /root/run.sh
 COPY main.py .
 COPY SyncIBKR.py .
 COPY pretty_print.py .
+COPY mapping.yaml .
 ENTRYPOINT ["dumb-init", "--"]
 CMD /root/entrypoint.sh | while IFS= read -r line; do printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$line"; done;
